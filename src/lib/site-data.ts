@@ -20,7 +20,7 @@ export type Board = {
   finish: string;
   sides: string;
   swatch: string; // CSS background
-  titleSize?: number; // px for the detail-page product title
+  titleSize?: number; // px for the detail-page product 
   surfaceDesc: string; // dark "Premium Surface Finish" panel copy
   features: string[]; // three panel bullets
 };
