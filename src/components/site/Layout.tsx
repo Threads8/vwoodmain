@@ -35,11 +35,11 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean | undefined 
       <nav className="mx-auto flex h-[var(--nav-h)] max-w-[1400px] items-center justify-between gap-3 px-(--page-gutter) font-body text-[clamp(13px,1.15vw,16px)] leading-[1.3] font-normal lg:px-8">
         <Link to="/" className="shrink-0" aria-label="Vwood home">
           <img
-            src="https://api.builder.io/api/v1/image/assets/TEMP/fdb1fd03c53c6ac217dbb4eeefe5385654a5c91e?width=288"
+            src="https://api.builder.io/api/v1/image/assets/TEMP/fdb1fd03c53c6ac217dbb4eeefe5385654a5c91e?width=360"
             alt="Vwood"
-            width={144}
-            height={40}
-            className="h-auto w-[clamp(96px,10vw,144px)]"
+            width={170}
+            height={47}
+            className="h-auto w-[clamp(113px,11.8vw,170px)]"
           />
         </Link>
         {NAV.map((n) => (

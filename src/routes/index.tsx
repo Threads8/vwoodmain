@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowRight, Star } from "lucide-react";
 import { Page } from "@/components/site/Layout";
 import { HeroMaterials } from "@/components/site/HeroMaterials";
@@ -93,11 +93,147 @@ function Heading({ title, sub }: { title: string; sub?: string }) {
   );
 }
 
-function Home() {
-  const [page, setPage] = useState(0);
-  const pages = Math.ceil(FEATURED.length / 3);
-  const shown = FEATURED.slice(page * 3, page * 3 + 3).concat(FEATURED.slice(0, Math.max(0, page * 3 + 3 - FEATURED.length)));
+// Featured products carousel: three cards per slide, auto-advancing and looping.
+const AUTOPLAY_DELAY = 4000;
+const SLIDE_DURATION = 600;
+const SWIPE_THRESHOLD = 40;
+const PER_SLIDE = 3;
+const FEATURED_PAGES = Array.from({ length: Math.ceil(FEATURED.length / PER_SLIDE) }, (_, page) =>
+  FEATURED.slice(page * PER_SLIDE, page * PER_SLIDE + PER_SLIDE).concat(
+    FEATURED.slice(0, Math.max(0, page * PER_SLIDE + PER_SLIDE - FEATURED.length)),
+  ),
+);
+// A copy of the first slide sits at the end so the last → first step slides forward seamlessly.
+const FEATURED_TRACK = [...FEATURED_PAGES, ...FEATURED_PAGES.slice(0, 1)];
 
+function FeaturedCarousel() {
+  const pages = FEATURED_PAGES.length;
+  const [index, setIndex] = useState(0);
+  const [animate, setAnimate] = useState(true);
+  const [hovered, setHovered] = useState(false);
+  const [touching, setTouching] = useState(false);
+  const [tabHidden, setTabHidden] = useState(false);
+  const [timerKey, setTimerKey] = useState(0);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const active = index % pages;
+
+  useEffect(() => {
+    const onVisibility = () => setTabHidden(document.hidden);
+    onVisibility();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
+
+  useEffect(() => {
+    if (hovered || touching || tabHidden) return;
+    const id = window.setInterval(() => {
+      setAnimate(true);
+      setIndex((i) => Math.min(i + 1, pages));
+    }, AUTOPLAY_DELAY);
+    return () => window.clearInterval(id);
+  }, [hovered, touching, tabHidden, timerKey, pages]);
+
+  // After an instant jump (no transition), turn the transition back on once the new position has painted.
+  useEffect(() => {
+    if (animate) return;
+    let inner = 0;
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => setAnimate(true));
+    });
+    return () => {
+      cancelAnimationFrame(outer);
+      cancelAnimationFrame(inner);
+    };
+  }, [animate]);
+
+  const goTo = (i: number) => {
+    setAnimate(true);
+    setIndex(i);
+    setTimerKey((k) => k + 1);
+  };
+
+  const step = (dir: 1 | -1) => {
+    if (dir === 1) return goTo(Math.min(index + 1, pages));
+    if (index > 0) return goTo(index - 1);
+    // Going back from the first slide: jump to the trailing copy, then slide back one.
+    setAnimate(false);
+    setIndex(pages);
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        setAnimate(true);
+        setIndex(pages - 1);
+      }),
+    );
+    setTimerKey((k) => k + 1);
+  };
+
+  return (
+    <>
+      <div
+        className="site-container"
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        onTouchStart={(e) => {
+          const t = e.touches[0];
+          touchStart.current = t ? { x: t.clientX, y: t.clientY } : null;
+          setTouching(true);
+        }}
+        onTouchEnd={(e) => {
+          const start = touchStart.current;
+          const t = e.changedTouches[0];
+          touchStart.current = null;
+          setTouching(false);
+          if (!start || !t) return;
+          const dx = t.clientX - start.x;
+          if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(t.clientY - start.y)) step(dx < 0 ? 1 : -1);
+        }}
+        onTouchCancel={() => {
+          touchStart.current = null;
+          setTouching(false);
+        }}
+      >
+        {/* Vertical padding keeps the card shadows from being clipped by the overflow mask. */}
+        <div className="-my-1 overflow-hidden py-1" style={{ touchAction: "pan-y" }}>
+          <div
+            className="flex"
+            style={{
+              transform: `translateX(-${index * 100}%)`,
+              transition: animate ? `transform ${SLIDE_DURATION}ms ease-in-out` : "none",
+            }}
+            onTransitionEnd={(e) => {
+              if (e.target !== e.currentTarget || e.propertyName !== "transform") return;
+              if (index >= pages) {
+                setAnimate(false);
+                setIndex(0);
+              }
+            }}
+          >
+            {FEATURED_TRACK.map((slide, s) => {
+              const current = s === index;
+              return (
+                <div key={s} className="grid w-full shrink-0 gap-6 sm:grid-cols-3" aria-hidden={!current} inert={!current}>
+                  {slide.map(([src, name, slug]) => (
+                    <Link key={name} to="/products/$slug" params={{ slug }} className="group text-center">
+                      <div className="overflow-hidden rounded-(--radius-card) shadow-sm"><img src={src} alt={name} loading="lazy" className="aspect-[364/323] w-full object-cover transition-transform duration-500 group-hover:scale-105" /></div>
+                      <p className="mt-3 font-heading text-[clamp(15px,1.2vw,17px)] text-foreground/80">{name}</p>
+                    </Link>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+      <div className="mt-10 flex justify-center gap-1">
+        {FEATURED_PAGES.map((_, i) => (
+          <button key={i} aria-label={`Show slide ${i + 1}`} aria-current={i === active} onClick={() => goTo(i)} className={`h-2.5 w-2.5 rounded-full border border-border shadow ${i === active ? "bg-primary" : "bg-background"}`} />
+        ))}
+      </div>
+    </>
+  );
+}
+
+function Home() {
   return (
     <Page overlay>
       {/* Hero */}
@@ -123,19 +259,7 @@ function Home() {
       {/* Featured products */}
       <section className="site-section bg-sand">
         <h2 className="mb-10 text-center font-heading text-h2 font-bold text-heading/90">Featured Products</h2>
-        <div className="site-container grid gap-6 sm:grid-cols-3">
-          {shown.map(([src, name, slug]) => (
-            <Link key={name} to="/products/$slug" params={{ slug }} className="group text-center">
-              <div className="overflow-hidden rounded-(--radius-card) shadow-sm"><img src={src} alt={name} loading="lazy" className="aspect-[364/323] w-full object-cover transition-transform duration-500 group-hover:scale-105" /></div>
-              <p className="mt-3 font-heading text-[clamp(15px,1.2vw,17px)] text-foreground/80">{name}</p>
-            </Link>
-          ))}
-        </div>
-        <div className="mt-10 flex justify-center gap-1">
-          {Array.from({ length: pages }).map((_, i) => (
-            <button key={i} aria-label={`Show slide ${i + 1}`} onClick={() => setPage(i % pages)} className={`h-2.5 w-2.5 rounded-full border border-border shadow ${i === page ? "bg-primary" : "bg-background"}`} />
-          ))}
-        </div>
+        <FeaturedCarousel />
       </section>
 
       {/* Collections */}

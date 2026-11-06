@@ -67,13 +67,9 @@ function ProjectGallery() {
                 loading={i < 4 ? "eager" : "lazy"}
                 className="h-full w-full object-cover"
               />
-              <figcaption>Vwood Project {String(i + 1).padStart(2, "0")}</figcaption>
             </figure>
           ))}
         </div>
-        <p className="mt-6 text-right font-body text-[13px] leading-5 text-stone-body uppercase">
-          Showing {PHOTOS.length} images
-        </p>
       </section>
     </Page>
   );
