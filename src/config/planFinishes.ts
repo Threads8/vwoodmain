@@ -26,11 +26,16 @@ export const PREVIEW_FINISHES: CatalogItem[] = TRY_FIRST.flatMap(
   (id) => PRODUCTS.find((item) => item.id === id) ?? [],
 );
 
+/** The photos behind a board's preview finish, best first. */
+export function finishImages(item: CatalogItem): string[] {
+  return [item.image, LOCAL_SWATCHES.has(item.id) ? `/woods/${item.id}.jpg` : undefined].filter(
+    (src): src is string => Boolean(src),
+  );
+}
+
 /** CSS background for a board: its photo tiled like a sheet, over its colour swatch. */
 export function finishBackground(item: CatalogItem): string {
-  const layers = [item.image, LOCAL_SWATCHES.has(item.id) ? `/woods/${item.id}.jpg` : undefined]
-    .filter(Boolean)
-    .map((src) => `url("${src}") center / 46% auto repeat`);
+  const layers = finishImages(item).map((src) => `url("${src}") center / 46% auto repeat`);
   return [...layers, item.swatch].join(", ");
 }
 

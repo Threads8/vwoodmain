@@ -13,7 +13,7 @@ Source inspection and implementation:
 - Layout: responsive three-column detail section and per-product gallery proportions. Existing shared header/footer retained.
 - Colors: source swatches and panel colors transcribed; source placeholder swatches retained intentionally.
 - Images: supplied Builder image URLs used; visible Olive gallery layers selected over the covered Alabaster image. Remote image availability and rendered crops remain unverified.
-- Content: eight source product codes and available sheet sizes transcribed. Snow White Matt added without removing Pure White Matt.
+- Content: eight source product codes and available sheet sizes transcribed. Snow White Matt added without removing Snow White Matt.
 - Reference ambiguity: seven frames repeat Alabaster surface copy, including the matt finishes. Diamond Grey repeats Warm White gallery images. These are preserved as supplied, pending content review.
 - Behavior: quantity and native sheet-size radio controls feed validated contact search parameters and prefill the inquiry field. Inquiry submission is delivered through the server-side FormSubmit integration.
 

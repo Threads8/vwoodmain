@@ -43,7 +43,7 @@ const raw: [string, string, string][] = [
   ["Warm White Gloss", "High Gloss", "#fbfaf6"],
   ["Diamond Grey Gloss", "High Gloss", "#5a5a5a"],
   ["Raven Black Matt", "Matte", "#2a2a2a"],
-  ["Pure White Matt", "Matte", "#fcfbf7"],
+  ["Snow White Matt", "Matte", "#fcfbf7"],
   ["Classic Walnut", "Woodgrain", wood("#4a2c1c", "#5e3a25")],
   ["Maple Wood Natural", "Woodgrain", wood("#c58a3c", "#d69a4a")],
   ["Natural Brown", "Woodgrain", wood("#d8cfc6", "#e3dbd3")],

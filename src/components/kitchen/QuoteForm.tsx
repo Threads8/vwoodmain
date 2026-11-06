@@ -44,9 +44,9 @@ function Field({
 }
 
 function selectionsFromStore(): KitchenSelections {
-  const { layouts, cabinetStyles, boards, tapes, activeLayout, activeCabinetStyle } =
+  const { layouts, cabinetStyles, boards, tapes, activeLayout, activeCabinetStyle, skipped } =
     useKitchenStore.getState();
-  return { layouts, cabinetStyles, boards, tapes, activeLayout, activeCabinetStyle };
+  return { layouts, cabinetStyles, boards, tapes, activeLayout, activeCabinetStyle, skipped };
 }
 
 function QuoteSuccess() {

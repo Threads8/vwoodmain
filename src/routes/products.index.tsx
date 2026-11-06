@@ -1,12 +1,25 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { useState, type CSSProperties } from "react";
+import { useMemo, useState, type CSSProperties, type ImgHTMLAttributes } from "react";
+import { X } from "lucide-react";
 import { Page } from "@/components/site/Layout";
-import { type Board } from "@/lib/site-data";
-import { PRODUCT_CATEGORIES, parseProductCategory, getCategoryProducts, categoryOptionLabel } from "@/lib/product-categories";
-import { PRODUCT_IMAGES } from "@/lib/product-images";
+import { FilterPanel } from "@/components/catalog/FilterPanel";
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { COLOR_OPTIONS, FINISH_OPTIONS, MATERIAL_OPTIONS } from "@/config/catalogFilters";
+import { PRODUCT_CATEGORIES, parseProductCategory, categoryOptionLabel } from "@/lib/product-categories";
+import { getCatalogProducts, type CatalogProduct } from "@/lib/catalog-products";
+import {
+  EMPTY_PRODUCT_FILTERS,
+  facetCounts,
+  filterProducts,
+  hasActiveFilters,
+  parseCatalogSearch,
+  toCatalogSearch,
+  toggleValue,
+  type CatalogSearch,
+  type ProductFilters,
+} from "@/lib/catalog-filters";
 import { SINK_PRODUCTS } from "@/lib/sink-products";
 import { BIN_PRODUCTS } from "@/lib/bin-products";
-import type { EdgeTapeProduct } from "@/lib/edge-tape-products";
 import heroImg from "@/assets/products/hero.png";
 import mdfBoardsImg from "@/assets/products/mdf-boards.png";
 import sinksImg from "@/assets/products/sinks.png";
@@ -17,13 +30,19 @@ export const Route = createFileRoute("/products/")({
   validateSearch: (search: Record<string, unknown>): {
     category?: ReturnType<typeof parseProductCategory>;
     view?: "catalog" | undefined;
-  } => ({
+  } & CatalogSearch => ({
     category: parseProductCategory(search["category"]),
     view: search["view"] === "catalog" ? "catalog" : undefined,
+    ...toCatalogSearch(parseCatalogSearch(search)),
   }),
+  // Filters are applied on the client, so changing them never re-runs the loader.
   loaderDeps: ({ search }) => ({ category: parseProductCategory(search.category), view: search.view }),
-  loader: ({ deps }) => ({ category: deps.category, view: deps.view, products: getCategoryProducts(deps.category) }),
-  pendingComponent: () => <Page><p role="status" className="px-6 py-16 text-center">Loading products…</p></Page>,
+  loader: ({ deps }) => ({
+    category: deps.category,
+    view: deps.view,
+    products: deps.category === "mdf-board" || deps.category === "edge-tape" ? getCatalogProducts(deps.category) : [],
+  }),
+  pendingComponent: CatalogSkeleton,
   errorComponent: CatalogError,
   head: () => ({
     meta: [
@@ -43,6 +62,28 @@ export const Route = createFileRoute("/products/")({
   }),
   component: ProductCategoryPage,
 });
+
+function CatalogSkeleton() {
+  return (
+    <Page>
+      <section className="product-catalog-layout" aria-busy="true">
+        <p role="status" className="sr-only">Loading products…</p>
+        <div className="catalog-filter-sidebar flex flex-col gap-3.5" aria-hidden="true">
+          {Array.from({ length: 8 }, (_, i) => <div key={i} className="catalog-skeleton h-5" />)}
+        </div>
+        <div className="catalog-grid" aria-hidden="true">
+          {Array.from({ length: 6 }, (_, i) => (
+            <div key={i}>
+              <div className="catalog-skeleton aspect-[277/347]" />
+              <div className="catalog-skeleton mt-5 h-6 w-2/3" />
+              <div className="catalog-skeleton mt-2 h-4 w-11/12" />
+            </div>
+          ))}
+        </div>
+      </section>
+    </Page>
+  );
+}
 
 function CatalogError() {
   const router = useRouter();
@@ -161,64 +202,39 @@ function ProductLanding() {
   );
 }
 
-type CatalogProduct = Board | EdgeTapeProduct;
-
-const MATERIALS: { name: string; match: (b: CatalogProduct) => boolean }[] = [
-  { name: "Acrylic", match: (b) => b.finish === "High Gloss" },
-  { name: "UV Range", match: () => true },
-  { name: "Melamine", match: (b) => b.finish === "Woodgrain" || b.finish === "Matte" },
-  { name: "Acrylic Super Matt", match: (b) => b.name.includes("Super Matt") },
-];
-
-const FINISHES = ["Matte", "Satin", "High Gloss", "Woodgrain"];
-const SWATCHES = [
-  { hex: "#1A1C1C", tone: "dark" },
-  { hex: "#F1F1F1", tone: "light" },
-  { hex: "#6F4627", tone: "brown" },
-  { hex: "#51443C", tone: "grey" },
-  { hex: "#8B5E3C", tone: "oak" },
-];
-
-function avgColor(b: CatalogProduct): [number, number, number] {
-  const hexes = b.swatch.match(/#[0-9a-fA-F]{6}/g) ?? [];
-  if (hexes.length === 0) return [128, 128, 128];
-  let r = 0,
-    g = 0,
-    bl = 0;
-  for (const h of hexes) {
-    r += parseInt(h.slice(1, 3), 16);
-    g += parseInt(h.slice(3, 5), 16);
-    bl += parseInt(h.slice(5, 7), 16);
-  }
-  return [r / hexes.length, g / hexes.length, bl / hexes.length];
-}
-
-function toneOf(b: CatalogProduct): string {
-  const [r, g, bl] = avgColor(b);
-  const lum = (0.299 * r + 0.587 * g + 0.114 * bl) / 255;
-  if (lum > 0.8) return "light";
-  if (lum < 0.25) return "dark";
-  const max = Math.max(r, g, bl),
-    min = Math.min(r, g, bl);
-  if (max - min < 20) return "grey";
-  return lum < 0.45 ? "brown" : "oak";
-}
-
 const PER_PAGE = 21;
 // The supplied edge tape frames split the range into 12 cards, then 13.
 const EDGE_TAPE_FIRST_PAGE = 12;
 const EDGE_TAPE_PER_PAGE = 13;
 
+/** Lazy image that fades in over the card's neutral background once it has loaded. */
+function CatalogImage({ className = "", ...props }: ImgHTMLAttributes<HTMLImageElement>) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <img
+      {...props}
+      loading="lazy"
+      decoding="async"
+      // Images cached or loaded before hydration never fire onLoad.
+      ref={(img) => { if (img?.complete && img.naturalWidth > 0) setLoaded(true); }}
+      onLoad={() => setLoaded(true)}
+      data-loaded={loaded || undefined}
+      className={`catalog-card-img ${className}`}
+    />
+  );
+}
+
 function ProductMedia({ product }: { product: CatalogProduct }) {
-  const zoomClass = "transition-transform duration-500 motion-safe:group-hover:scale-[1.03]";
+  const zoomClass = "transition-[opacity,transform] duration-500 motion-safe:group-hover:scale-[1.03]";
+  if (!product.image) {
+    return <div className="h-full w-full" style={{ background: product.swatch, border: product.swatchBorder }} />;
+  }
   if (product.categoryId === "edge-tape") {
-    if (!product.image) return <div className="h-full w-full" style={{ background: product.swatch }} />;
     const { crop } = product;
     return (
-      <img
+      <CatalogImage
         src={product.image}
         alt={`${product.name} edge tape`}
-        loading="lazy"
         className={`${crop ? "edge-tape-crop" : "h-full w-full object-cover"} ${zoomClass}`}
         style={crop ? ({
           "--crop-width": `${(crop.width / 277) * 100}%`,
@@ -229,36 +245,82 @@ function ProductMedia({ product }: { product: CatalogProduct }) {
       />
     );
   }
-  const image = PRODUCT_IMAGES[product.slug];
-  return image
-    ? <img src={image} alt={`${product.name} cabinetry`} loading="lazy" className={`h-full w-full object-cover ${zoomClass}`} />
-    : <div className="h-full w-full" style={{ background: product.swatch }} />;
+  return <CatalogImage src={product.image} alt={`${product.name} cabinetry`} className={`h-full w-full object-cover ${zoomClass}`} />;
+}
+
+function ProductCard({ product }: { product: CatalogProduct }) {
+  return (
+    <Link to="/products/$slug" params={{ slug: product.slug }} className="group block">
+      <div className="relative aspect-[277/347] overflow-hidden" style={{ background: "#F3F3F3" }}>
+        <ProductMedia product={product} />
+        {product.textureCount > 1 && (
+          <div
+            className="absolute inset-x-4 bottom-4 translate-y-full p-4 opacity-0 backdrop-blur-[12px] transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100"
+            style={{ background: "rgba(234,232,231,0.8)" }}
+          >
+            <p className="font-body text-[12px] leading-[15px] tracking-[1px] uppercase" style={{ color: "#1A1C1C" }}>
+              Available in {product.textureCount} Textures
+            </p>
+          </div>
+        )}
+      </div>
+      <h3 className="mt-5 font-sans text-h3 font-bold tracking-[-0.02em]" style={{ color: "#1A1C1C" }}>
+        {product.name}
+      </h3>
+      <p className="mt-1.5 max-w-[320px] font-body text-[14px] leading-[1.625]" style={{ color: "#51443C" }}>
+        {product.description}
+      </p>
+      <span
+        className="mt-4 inline-block border-b pb-0.5 font-body text-[13px] font-semibold tracking-[0.5px] uppercase"
+        style={{ borderColor: "#6F4627", color: "#6F4627" }}
+      >
+        Details
+      </span>
+    </Link>
+  );
+}
+
+const plural = (count: number) => `${count} ${count === 1 ? "product" : "products"}`;
+
+function activeFilterTags(filters: ProductFilters) {
+  return [
+    ...MATERIAL_OPTIONS.filter((o) => o.key === filters.material).map((o) => ({
+      id: `material-${o.key}`, label: o.label, remove: (f: ProductFilters) => ({ ...f, material: null }),
+    })),
+    ...FINISH_OPTIONS.filter((o) => filters.finishes.includes(o.key)).map((o) => ({
+      id: `finish-${o.key}`, label: o.label, remove: (f: ProductFilters) => ({ ...f, finishes: toggleValue(f.finishes, o.key) }),
+    })),
+    ...COLOR_OPTIONS.filter((o) => filters.colors.includes(o.key)).map((o) => ({
+      id: `color-${o.key}`, label: o.label, remove: (f: ProductFilters) => ({ ...f, colors: toggleValue(f.colors, o.key) }),
+    })),
+  ];
 }
 
 function Products() {
   const { category, products } = Route.useLoaderData();
+  const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const hasFilters = category === "mdf-board" || category === "edge-tape";
   const firstPageSize = category === "edge-tape" ? EDGE_TAPE_FIRST_PAGE : PER_PAGE;
   const pageSize = category === "edge-tape" ? EDGE_TAPE_PER_PAGE : PER_PAGE;
   const categoryName = PRODUCT_CATEGORIES.find((item) => item.id === category)!.name;
-  const [material, setMaterial] = useState("UV Range");
-  const [finish, setFinish] = useState<string | null>(null);
-  const [tone, setTone] = useState<string | null>(null);
-  const [page, setPage] = useState(0);
 
-  const apply = (fn: () => void) => {
-    fn();
-    setPage(0);
-  };
+  // The URL is the source of truth, so links restore filters and Back/Forward step through them.
+  const filters = useMemo(() => parseCatalogSearch(search), [search]);
+  const filterKey = JSON.stringify(toCatalogSearch(filters));
+  const setFilters = (next: ProductFilters) =>
+    void navigate({ search: (prev) => ({ ...prev, ...toCatalogSearch(next) }), resetScroll: false });
 
-  const filtered = products.filter((b) => {
-    const m = MATERIALS.find((x) => x.name === material);
-    if (m && !m.match(b)) return false;
-    if (finish && b.finish !== finish) return false;
-    if (tone && toneOf(b) !== tone) return false;
-    return true;
-  });
+  const filtered = useMemo(() => filterProducts(products, filters), [products, filters]);
+  const counts = useMemo(() => facetCounts(products, filters), [products, filters]);
+  const tags = activeFilterTags(filters);
+  const active = hasActiveFilters(filters);
+
+  // Return to the first page whenever the filters change.
+  const [pageState, setPageState] = useState({ key: filterKey, page: 0 });
+  const page = pageState.key === filterKey ? pageState.page : 0;
+  const setPage = (next: number) => setPageState({ key: filterKey, page: next });
+
   const pageCount = 1 + Math.ceil(Math.max(0, filtered.length - firstPageSize) / pageSize);
   const pageStart = page === 0 ? 0 : firstPageSize + (page - 1) * pageSize;
   const visible = filtered.slice(pageStart, pageStart + (page === 0 ? firstPageSize : pageSize));
@@ -291,11 +353,7 @@ function Products() {
               Explore our curated range of quality interior products, designed for modern spaces.
               {category === "edge-tape" ? " From versatile edge tape, discover solutions" : " From versatile MDF boards discover solutions"} that combine functionality with
               contemporary design.
-            </p>
-            <Link to="/project-gallery" className="catalog-gallery-link mt-4 inline-block">
-              View Project Gallery →
-            </Link>
-          </div>
+            </p>          </div>
           <select aria-label="Category" value={category} onChange={(event) => void navigate({ search: { category: parseProductCategory(event.target.value), view: "catalog" }, resetScroll: false })} className="catalog-category mt-3">
             {PRODUCT_CATEGORIES.map((item) => <option key={item.id} value={item.id}>{categoryOptionLabel(item)}</option>)}
           </select>
@@ -303,162 +361,57 @@ function Products() {
       </section>
 
       {category === "sink" ? <SinkRange /> : category === "rubbish-bin" ? <BinRange /> : <section className="product-catalog-layout">
-        <aside hidden={!hasFilters}>
-          <p
-            className="font-sans text-[13px] font-bold uppercase tracking-[1.2px]"
-            style={{ color: "#1A1C1C" }}
-          >
-            Material
-          </p>
-          <div className="mt-5 flex flex-col gap-3.5">
-            {MATERIALS.map((m) => {
-              const selected = m.name === material;
-              const count = products.filter(m.match).length;
-              return (
-                <button
-                  key={m.name}
-                  aria-pressed={selected}
-                  onClick={() => apply(() => setMaterial(m.name))}
-                  className="flex items-center justify-between text-left"
-                >
-                  <span
-                    className={`font-body text-[14px] leading-5 ${selected ? "font-semibold" : "font-normal"}`}
-                    style={{ color: selected ? "#1A1C1C" : "#51443C" }}
-                  >
-                    {m.name}
-                  </span>
-                  {selected ? (
-                    <span className="h-1.5 w-1.5 rounded-full" style={{ background: "#6F4627" }} />
-                  ) : (
-                    <span
-                      className="font-body text-[12px] leading-[15px]"
-                      style={{ color: "#83746B" }}
-                    >
-                      ({String(count).padStart(2, "0")})
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          <p
-            className="mt-8 font-sans text-[13px] font-bold uppercase tracking-[1.2px]"
-            style={{ color: "#1A1C1C" }}
-          >
-            Finish
-          </p>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {FINISHES.map((f) => {
-              const selected = finish === f;
-              return (
-                <button
-                  key={f}
-                  aria-pressed={selected}
-                  onClick={() => apply(() => setFinish(selected ? null : f))}
-                  className="rounded-(--radius-control) py-2 font-body text-[12px] font-semibold uppercase leading-[15px]"
-                  style={
-                    selected
-                      ? { background: "#2F3131", color: "#F9F9F9" }
-                      : { background: "#D9D9D9", color: "#1A1C1C" }
-                  }
-                >
-                  {f}
-                </button>
-              );
-            })}
-          </div>
-
-          <p
-            className="mt-8 font-sans text-[13px] font-bold uppercase tracking-[1.2px]"
-            style={{ color: "#1A1C1C" }}
-          >
-            Color Palette
-          </p>
-          <div className="mt-4 flex gap-3">
-            {SWATCHES.map((s) => (
-              <button
-                key={s.tone}
-                aria-label={`Filter by ${s.tone}`}
-                aria-pressed={tone === s.tone}
-                onClick={() => apply(() => setTone(tone === s.tone ? null : s.tone))}
-                className="h-8 w-8 rounded-xl border transition-transform hover:scale-105"
-                style={{
-                  background: s.hex,
-                  borderColor: "rgba(213,195,184,0.2)",
-                  outline: tone === s.tone ? "2px solid #6F4627" : "none",
-                  outlineOffset: "2px",
-                }}
-              />
-            ))}
-          </div>
-
-          <button
-            onClick={() =>
-              apply(() => {
-                setMaterial("UV Range");
-                setFinish(null);
-                setTone(null);
-              })
-            }
-            className="mt-6 w-full rounded-(--radius-control) border py-3.5 font-body text-[13px] font-semibold uppercase tracking-[1.2px]"
-            style={{ borderColor: "rgba(213,195,184,0.4)", color: "#1A1C1C" }}
-          >
-            Clear All Filters
-          </button>
+        <aside hidden={!hasFilters} className="catalog-filter-sidebar" aria-label="Product filters">
+          <FilterPanel filters={filters} counts={counts} onChange={setFilters} idPrefix="sidebar-filter" />
         </aside>
 
         <div className={!hasFilters ? "col-span-full" : undefined}>
-          <div className="grid grid-cols-1 gap-x-[clamp(16px,2.2vw,32px)] gap-y-[clamp(40px,4.4vw,64px)] sm:grid-cols-2 lg:grid-cols-3">
-            {visible.map((b) => (
-              <Link
-                key={b.slug}
-                to="/products/$slug"
-                params={{ slug: b.slug }}
-                className="group block"
-              >
-                <div
-                  className="relative aspect-[277/347] overflow-hidden"
-                  style={{ background: "#F3F3F3" }}
-                >
-                  <ProductMedia product={b} />
-                  <div
-                    className="absolute inset-x-4 bottom-4 translate-y-full p-4 opacity-0 backdrop-blur-[12px] transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100"
-                    style={{ background: "rgba(234,232,231,0.8)" }}
-                  >
-                    <p
-                      className="font-body text-[12px] leading-[15px] tracking-[1px] uppercase"
-                      style={{ color: "#1A1C1C" }}
-                    >
-                      Available in 8 Textures
-                    </p>
-                  </div>
-                </div>
-                <h3
-                  className="mt-5 font-sans text-h3 font-bold tracking-[-0.02em]"
-                  style={{ color: "#1A1C1C" }}
-                >
-                  {b.name}
-                </h3>
-                <p
-                  className="mt-1.5 max-w-[320px] font-body text-[14px] leading-[1.6]"
-                  style={{ color: "#51443C" }}
-                >
-                  {b.desc}
-                </p>
-                <span
-                  className="mt-4 inline-block border-b pb-0.5 font-body text-[13px] font-semibold tracking-[0.5px] uppercase"
-                  style={{ borderColor: "#6F4627", color: "#6F4627" }}
-                >
-                  Details
-                </span>
-              </Link>
-            ))}
+          {hasFilters && (
+            <div className="catalog-results-bar">
+              <Sheet>
+                <SheetTrigger className="catalog-filter-trigger">
+                  Filters{active ? ` (${tags.length})` : ""}
+                </SheetTrigger>
+                <SheetContent side="left" className="catalog-filter-drawer">
+                  <SheetTitle className="sr-only">Product filters</SheetTitle>
+                  <SheetDescription className="sr-only">Results update as you choose filters.</SheetDescription>
+                  <FilterPanel filters={filters} counts={counts} onChange={setFilters} idPrefix="drawer-filter">
+                    <SheetClose className="catalog-filter-apply">
+                      Show {filtered.length} {filtered.length === 1 ? "result" : "results"}
+                    </SheetClose>
+                  </FilterPanel>
+                </SheetContent>
+              </Sheet>
+              <p role="status" aria-live="polite" className="catalog-result-count">
+                {plural(filtered.length)}
+              </p>
+              {tags.length > 0 && (
+                <ul className="catalog-active-filters" aria-label="Active filters">
+                  {tags.map((tag) => (
+                    <li key={tag.id}>
+                      <button type="button" onClick={() => setFilters(tag.remove(filters))} aria-label={`Remove ${tag.label} filter`}>
+                        {tag.label}
+                        <X aria-hidden="true" className="h-3 w-3" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          <div key={`${filterKey}:${page}`} className="catalog-grid catalog-grid-fade">
+            {visible.map((product) => <ProductCard key={product.slug} product={product} />)}
           </div>
           {filtered.length === 0 && (
-            <p role="status" className="py-16 text-center">
-              {products.length === 0 ? "No products available in this category yet." : "No materials match these filters. Clear all filters to see the full range."}
-            </p>
+            products.length === 0 ? (
+              <p role="status" className="py-16 text-center">No products available in this category yet.</p>
+            ) : (
+              <div className="catalog-empty">
+                <p>No products match these filters</p>
+                <button type="button" onClick={() => setFilters(EMPTY_PRODUCT_FILTERS)}>Clear Filters</button>
+              </div>
+            )
           )}
           {filtered.length > 0 && <div
             className="mt-16 flex flex-wrap items-center gap-6 font-body text-xs font-bold uppercase"
@@ -490,12 +443,6 @@ function Products() {
             >
               Next →
             </button>
-            <span role="status" aria-live="polite"
-              className="ml-auto text-[12px] tracking-[1px] uppercase"
-              style={{ color: "#51443C" }}
-            >
-              Showing {visible.length} of {filtered.length} materials
-            </span>
           </div>}
         </div>
       </section>}

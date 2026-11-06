@@ -56,6 +56,32 @@ describe("route guard order", () => {
     ).toBe(3);
   });
 
+  it("treats a skipped step as done", () => {
+    expect(findIncompleteStep(3, { ...empty, skipped: ["layouts", "cabinetStyles"] })).toBeNull();
+    expect(findIncompleteStep(6, { ...empty, skipped: ["layouts", "boards"] })?.step).toBe(2);
+  });
+
+  it("remembers skipped steps in the store once each, and clears them on reset", () => {
+    const store = useKitchenStore.getState();
+    store.reset();
+    store.skipStep("boards");
+    store.skipStep("boards");
+    expect(useKitchenStore.getState().skipped).toEqual(["boards"]);
+    store.reset();
+    expect(useKitchenStore.getState().skipped).toEqual([]);
+  });
+
+  it("writes Skipped for empty sections in the quote message", () => {
+    const message = buildSelectionMessage({
+      ...empty,
+      activeLayout: null,
+      activeCabinetStyle: null,
+      skipped: [],
+    });
+    expect(message).toContain("Kitchen layout: Skipped");
+    expect(message).toContain("Tapes: Skipped");
+  });
+
   it("allows a step when everything before it is complete", () => {
     expect(findIncompleteStep(1, empty)).toBeNull();
     expect(findIncompleteStep(2, { ...empty, layouts: ["island"] })).toBeNull();
@@ -166,6 +192,7 @@ describe("quote form", () => {
       tapes: [],
       activeLayout: "island",
       activeCabinetStyle: "shaker",
+      skipped: [],
     });
     expect(message).toContain("U-Shaped, Island");
     expect(message).toContain("Shaker");

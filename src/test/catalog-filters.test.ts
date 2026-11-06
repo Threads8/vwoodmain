@@ -1,0 +1,229 @@
+import { describe, expect, it } from "vitest";
+import { CATALOG_ATTRIBUTES } from "@/lib/catalog-attributes";
+import {
+  EMPTY_PRODUCT_FILTERS,
+  facetCounts,
+  filterProducts,
+  hasActiveFilters,
+  parseCatalogSearch,
+  toCatalogSearch,
+  toggleMaterial,
+  type Filterable,
+} from "@/lib/catalog-filters";
+import { BOARD_CATALOG, EDGE_TAPE_CATALOG } from "@/lib/catalog-products";
+import { BOARDS } from "@/lib/site-data";
+
+type Item = Filterable & { id: string };
+
+const ITEMS: Item[] = [
+  { id: "a", material: "acrylic", finish: "high-gloss", colors: ["white"] },
+  { id: "b", material: "acrylic", finish: "matte", colors: ["black"] },
+  { id: "c", material: "melamine", finish: "woodgrain", colors: ["tan", "dark-brown"] },
+  { id: "d", material: "melamine", finish: "high-gloss", colors: ["charcoal"] },
+  { id: "e", material: "uv-range", finish: "matte", colors: ["white"] },
+];
+const ids = (items: Item[]) => items.map((item) => item.id);
+
+describe("filterProducts", () => {
+  it("returns every product when no filters are selected", () => {
+    expect(filterProducts(ITEMS, EMPTY_PRODUCT_FILTERS)).toEqual(ITEMS);
+  });
+
+  it("matches the single selected material", () => {
+    expect(ids(filterProducts(ITEMS, { ...EMPTY_PRODUCT_FILTERS, material: "melamine" }))).toEqual([
+      "c",
+      "d",
+    ]);
+  });
+
+  it("uses OR within finishes and within colours", () => {
+    expect(
+      ids(filterProducts(ITEMS, { ...EMPTY_PRODUCT_FILTERS, finishes: ["matte", "woodgrain"] })),
+    ).toEqual(["b", "c", "e"]);
+    expect(
+      ids(filterProducts(ITEMS, { ...EMPTY_PRODUCT_FILTERS, colors: ["white", "tan"] })),
+    ).toEqual(["a", "c", "e"]);
+  });
+
+  it("matches a product when any of its colours is selected", () => {
+    expect(
+      ids(filterProducts(ITEMS, { ...EMPTY_PRODUCT_FILTERS, colors: ["dark-brown"] })),
+    ).toEqual(["c"]);
+  });
+
+  it("uses AND across material, finish and colour", () => {
+    expect(
+      ids(
+        filterProducts(ITEMS, {
+          material: "acrylic",
+          finishes: ["high-gloss", "matte"],
+          colors: ["black"],
+        }),
+      ),
+    ).toEqual(["b"]);
+    expect(
+      filterProducts(ITEMS, { material: "uv-range", finishes: ["woodgrain"], colors: [] }),
+    ).toEqual([]);
+  });
+
+  it("deselects the material when the active one is clicked again", () => {
+    const selected = toggleMaterial(EMPTY_PRODUCT_FILTERS, "acrylic");
+    expect(selected.material).toBe("acrylic");
+    expect(toggleMaterial(selected, "acrylic").material).toBeNull();
+    expect(hasActiveFilters(toggleMaterial(selected, "acrylic"))).toBe(false);
+  });
+});
+
+describe("facetCounts", () => {
+  it("counts each material against the other active filters", () => {
+    const counts = facetCounts(ITEMS, { ...EMPTY_PRODUCT_FILTERS, finishes: ["high-gloss"] });
+    expect(counts.material).toEqual({
+      acrylic: 1,
+      "uv-range": 0,
+      melamine: 1,
+      "acrylic-super-matt": 0,
+    });
+  });
+
+  it("counts each finish and colour option as if it were the only one in its group", () => {
+    const counts = facetCounts(ITEMS, { material: "acrylic", finishes: ["matte"], colors: [] });
+    expect(counts.finish).toEqual({ matte: 1, satin: 0, "high-gloss": 1, woodgrain: 0 });
+    expect(counts.color).toEqual({ black: 1, white: 0, "dark-brown": 0, charcoal: 0, tan: 0 });
+  });
+});
+
+describe("catalog URL", () => {
+  it("parses the documented query string", () => {
+    expect(
+      parseCatalogSearch({ material: "uv-range", finish: "matte,high-gloss", color: "white" }),
+    ).toEqual({
+      material: "uv-range",
+      finishes: ["matte", "high-gloss"],
+      colors: ["white"],
+    });
+  });
+
+  it("ignores unknown, duplicate and malformed values", () => {
+    expect(
+      parseCatalogSearch({ material: "wood", finish: "matte,shiny,matte", color: 42 }),
+    ).toEqual({
+      material: null,
+      finishes: ["matte"],
+      colors: [],
+    });
+    expect(parseCatalogSearch({}).finishes).toEqual([]);
+    expect(parseCatalogSearch({ finish: ["satin", "matte"] }).finishes).toEqual(["matte", "satin"]);
+  });
+
+  it("serialises in a stable order and drops empty groups", () => {
+    expect(
+      toCatalogSearch({ material: null, finishes: ["woodgrain", "matte"], colors: [] }),
+    ).toEqual({
+      material: undefined,
+      finish: "matte,woodgrain",
+      color: undefined,
+    });
+  });
+
+  it("round-trips filters through the URL", () => {
+    const filters = {
+      material: "melamine",
+      finishes: ["matte", "woodgrain"],
+      colors: ["black", "tan"],
+    } as const;
+    const search = toCatalogSearch({
+      ...filters,
+      finishes: [...filters.finishes],
+      colors: [...filters.colors],
+    });
+    expect(parseCatalogSearch(search)).toEqual(filters);
+  });
+});
+
+describe("catalog data", () => {
+  it("gives every board structured filter fields", () => {
+    expect(Object.keys(CATALOG_ATTRIBUTES).sort()).toEqual(
+      BOARDS.map((board) => board.slug).sort(),
+    );
+    expect(BOARD_CATALOG).toHaveLength(BOARDS.length);
+    for (const product of [...BOARD_CATALOG, ...EDGE_TAPE_CATALOG]) {
+      expect(product.textureCount).toBeGreaterThanOrEqual(1);
+      expect(product.finish).toMatch(/^(matte|satin|high-gloss|woodgrain)$/);
+    }
+  });
+
+  it("shows the supplied Figma copy on the first 21 MDF board cards, in grid order", () => {
+    const opening = (product: (typeof BOARD_CATALOG)[number]) => product.description.split(" ")[0];
+    expect(BOARD_CATALOG.slice(0, 21).map(opening)).toEqual([
+      ...[
+        "Premium",
+        "High-durability",
+        "Acrylic-based",
+        "Ultra-compact",
+        "Anodized",
+        "Acrylic-based",
+      ],
+      ...[
+        "Premium",
+        "High-durability",
+        "Acrylic-based",
+        "Ultra-compact",
+        "Anodized",
+        "Acrylic-based",
+      ],
+      ...[
+        "Premium",
+        "High-durability",
+        "Acrylic-based",
+        "Ultra-compact",
+        "Anodized",
+        "Acrylic-based",
+      ],
+      ...["Ultra-compact", "Anodized", "Melamine-based"],
+    ]);
+    expect(BOARD_CATALOG[2]?.description).toBe(
+      "Acrylic-based surface offering an ultra-matte, velvety touch with thermal healing properties.",
+    );
+    // The card copy stays catalog-only; detail pages and the kitchen configurator keep theirs.
+    expect(BOARDS[0]?.desc).not.toBe(BOARD_CATALOG[0]?.description);
+  });
+
+  it("shows the supplied solid swatches instead of photos on three cards", () => {
+    const card = (slug: string) => BOARD_CATALOG.find((product) => product.slug === slug)!;
+    expect(
+      [card("alabaster-gloss"), card("warm-white-gloss"), card("raven-black-matt")].map(
+        ({ image, swatch, swatchBorder }) => ({ image, swatch, swatchBorder }),
+      ),
+    ).toEqual([
+      { image: undefined, swatch: "#F8F8F8", swatchBorder: undefined },
+      { image: undefined, swatch: "#FFFFFF", swatchBorder: "0.1px solid #000" },
+      { image: undefined, swatch: "#2B2A28", swatchBorder: undefined },
+    ]);
+  });
+
+  it("gives edge tapes the attributes of their matching board", () => {
+    for (const tape of EDGE_TAPE_CATALOG) {
+      const board = BOARD_CATALOG.find((item) => item.name === tape.name)!;
+      expect([tape.material, tape.finish, tape.colors]).toEqual([
+        board.material,
+        board.finish,
+        board.colors,
+      ]);
+    }
+  });
+
+  it("flags exactly the boards whose card description is shared with another board", () => {
+    const uses = new Map<string, number>();
+    for (const product of BOARD_CATALOG)
+      uses.set(product.description, (uses.get(product.description) ?? 0) + 1);
+    for (const product of BOARD_CATALOG) {
+      expect({ slug: product.slug, flagged: product.needsUniqueCopy }).toEqual({
+        slug: product.slug,
+        flagged: uses.get(product.description)! > 1,
+      });
+    }
+    const flagged = (slug: string) =>
+      BOARD_CATALOG.find((product) => product.slug === slug)?.needsUniqueCopy;
+    expect([flagged("alabaster-gloss"), flagged("shiny-white-gloss")]).toEqual([true, true]);
+  });
+});

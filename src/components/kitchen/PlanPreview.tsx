@@ -1,6 +1,6 @@
 import { useEffect, useId, useState } from "react";
 import { cabinetStyleLabel, layoutLabel } from "@/config/kitchenOptions";
-import { finishBackground, planMask, PREVIEW_FINISHES } from "@/config/planFinishes";
+import { finishBackground, finishImages, planMask, PREVIEW_FINISHES } from "@/config/planFinishes";
 import { getPlanImage, isDefaultPlan } from "@/config/planImages";
 import { PRODUCTS, type CatalogItem } from "@/config/products";
 import { useKitchenStore } from "@/stores/kitchenStore";
@@ -24,9 +24,9 @@ export function PlanLayer({
   return (
     <div className={`kc-plan-layer ${className}`}>
       <img src={src} alt={alt} className="kc-plan-image" draggable={false} />
+      {/* Not keyed by finish: remounting it flashed the plain white plan on every swatch change. */}
       {finish && (
         <span
-          key={finish.id}
           aria-hidden="true"
           className="kc-plan-finish"
           style={{
@@ -140,6 +140,8 @@ export function PlanPreview({ fullWidth = false }: { fullWidth?: boolean }) {
   const activeStyle = useKitchenStore((state) => state.activeCabinetStyle);
   const boards = useKitchenStore((state) => state.boards);
   const setActiveLayout = useKitchenStore((state) => state.setActiveLayout);
+  const previewFinish = useKitchenStore((state) => state.previewFinish);
+  const setPreviewFinish = useKitchenStore((state) => state.setPreviewFinish);
   // Collapsed by default on mobile, open on tablet. It is always open from 1024px, in CSS.
   const [open, setOpen] = useState(
     () => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches,
@@ -151,16 +153,21 @@ export function PlanPreview({ fullWidth = false }: { fullWidth?: boolean }) {
   const chosenBoards = boards.flatMap((id) => PRODUCTS.find((item) => item.id === id) ?? []);
   const options = chosenBoards.length > 0 ? chosenBoards : PREVIEW_FINISHES;
   const latestBoard = chosenBoards.at(-1)?.id ?? null;
-  const [picked, setPicked] = useState<string | null | undefined>(undefined);
-  // A newly selected board is shown straight away.
-  const [seenBoard, setSeenBoard] = useState(latestBoard);
-  if (seenBoard !== latestBoard) {
-    setSeenBoard(latestBoard);
-    setPicked(undefined);
-  }
+  // The tried finish lives in the store, so it survives step changes (this preview remounts on
+  // every step) and layout switches. A newly selected board is shown straight away.
+  const picked = previewFinish?.forBoard === latestBoard ? previewFinish.id : undefined;
   const finishId =
     picked === undefined ? latestBoard : options.some((item) => item.id === picked) ? picked : null;
   const finish = options.find((item) => item.id === finishId) ?? null;
+  const pickFinish = (id: string | null) => setPreviewFinish({ id, forBoard: latestBoard });
+
+  // Load every offered board photo up front, so a swatch paints its grain at once instead of
+  // showing the flat colour first.
+  const optionIds = options.map((item) => item.id).join();
+  useEffect(() => {
+    for (const item of options) for (const src of finishImages(item)) new Image().src = src;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- options is rebuilt every render
+  }, [optionIds]);
 
   const usesDefault = activeLayout ? isDefaultPlan(activeLayout, activeStyle) : false;
   const name = activeLayout
@@ -211,7 +218,7 @@ export function PlanPreview({ fullWidth = false }: { fullWidth?: boolean }) {
             <p className="kc-plan-caption" aria-live="polite">
               {name}
               {usesDefault ? " (default view)" : ""}
-              {finish ? ` · ${finish.name}` : ""}
+              {finish ? ` · ${finish.name}${finish.code ? ` ${finish.code}` : ""}` : ""}
             </p>
           )}
         </div>
@@ -219,7 +226,7 @@ export function PlanPreview({ fullWidth = false }: { fullWidth?: boolean }) {
           <FinishPicker
             options={options}
             value={finishId}
-            onChange={setPicked}
+            onChange={pickFinish}
             chosen={chosenBoards.length > 0}
           />
         )}

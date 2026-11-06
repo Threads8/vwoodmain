@@ -13,7 +13,7 @@ const NAV = [
   { to: "/", label: "Home" },
   { to: "/products", label: "Product" },
   { to: "/kitchen-design", label: "Kitchen Design" },
-  { to: "/services", label: "Services" },
+  { to: "/about", label: "About" },
   { to: "/project-gallery", label: "Project Gallery" },
 ] as const;
 
@@ -74,7 +74,7 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean | undefined 
       </nav>
       <div id="site-mobile-menu" className={`site-mobile-menu lg:hidden ${menuOpen ? "is-open" : ""}`} hidden={!menuOpen}>
         <ul>
-          {[...NAV, { to: "/about", label: "About Us" } as const, { to: "/contact", label: "Contact" } as const].map((n) => (
+          {[...NAV, { to: "/contact", label: "Contact" } as const].map((n) => (
             <li key={n.label}>
               <Link to={n.to} activeOptions={{ exact: true }} activeProps={{ "aria-current": "page" }} onClick={() => setMenuOpen(false)}>
                 {n.label}

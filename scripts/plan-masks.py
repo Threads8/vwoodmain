@@ -1,11 +1,16 @@
 """Build cabinet-front masks for the 2D plan images.
-usage: python3 masks.py SRC OUT [DEBUG] [x,y ...]   (x,y in source pixels = regions to exclude)"""
+usage: python3 masks.py SRC OUT [DEBUG.png] [x,y ...] [+x,y ...]
+  x,y   (source pixels) removes the white region under that point (a wall, backsplash or window).
+  +x,y  always keeps the white region under that point, even when it is too large or too narrow
+        for the automatic filter: tall end panels, columns and peninsula ends."""
 import sys, numpy as np
 from PIL import Image, ImageDraw
 from scipy import ndimage
 src, out = sys.argv[1], sys.argv[2]
-dbg = sys.argv[3] if len(sys.argv) > 3 and not sys.argv[3][0].isdigit() else None
-pts = [tuple(map(int, p.split(','))) for p in sys.argv[3 + (dbg is not None):]]
+args = sys.argv[3:]
+dbg = args.pop(0) if args and args[0].lower().endswith('.png') else None
+pts = [tuple(map(int, p.split(','))) for p in args if not p.startswith('+')]
+add = [tuple(map(int, p[1:].split(','))) for p in args if p.startswith('+')]
 im = Image.open(src).convert('RGBA'); a = np.asarray(im).astype(int)
 r,g,b,al = a[...,0],a[...,1],a[...,2],a[...,3]
 H,W = r.shape
@@ -28,6 +33,9 @@ for i,sl in enumerate(objs,1):
     keep[i]=True
 for x,y in pts:
     keep[lab[y,x]] = False
+for x,y in add:
+    if not lab[y,x]: sys.exit(f"{src}: +{x},{y} is not on a white region")
+    keep[lab[y,x]] = True
 m = ndimage.binary_dilation(keep[lab], iterations=1)
 o = Image.new('RGBA',(W,H),(0,0,0,0)); o.putalpha(Image.fromarray((m*255).astype('uint8'),'L')); o.save(out, optimize=True)
 if dbg:

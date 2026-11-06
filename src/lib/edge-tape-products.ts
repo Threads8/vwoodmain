@@ -59,8 +59,7 @@ const raw: RawTape[] = [
   {
     name: "Snow White Matt",
     desc: TIMBER,
-    image: asset("ab5041c2879587ab0595e36ac1b409d200dbfe29", 1172),
-    crop: { width: 586, height: 629, x: 0, y: 0 },
+    swatch: "#FCFBF7",
   },
   {
     name: "Classic Walnut",

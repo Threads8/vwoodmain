@@ -17,10 +17,13 @@ export type StepPath = (typeof KITCHEN_STEPS)[number]["path"];
 export const stepPath = (step: StepNumber): StepPath =>
   KITCHEN_STEPS.find((item) => item.step === step)?.path ?? KITCHEN_STEPS[0].path;
 
+/** The selection each choice step collects; these steps can also be skipped. */
+export type SkippableStep = "layouts" | "cabinetStyles" | "boards" | "tapes";
+
 // Checked in this order: layouts, cabinet styles, boards, tapes.
 const REQUIREMENTS: {
   step: StepNumber;
-  key: "layouts" | "cabinetStyles" | "boards" | "tapes";
+  key: SkippableStep;
   message: string;
 }[] = [
   { step: 1, key: "layouts", message: "Please choose a layout first" },
@@ -29,13 +32,22 @@ const REQUIREMENTS: {
   { step: 4, key: "tapes", message: "Please choose a tape first" },
 ];
 
+export const skippableStep = (step: StepNumber): SkippableStep | undefined =>
+  REQUIREMENTS.find((requirement) => requirement.step === step)?.key;
+
+/** A choice step counts as done once something is selected or the customer skipped it. */
+export const isStepDone = (
+  key: SkippableStep,
+  selections: Pick<KitchenSelections, SkippableStep> & { skipped?: readonly SkippableStep[] },
+) => selections[key].length > 0 || (selections.skipped?.includes(key) ?? false);
+
 /** The earliest incomplete step before `step`, or null when it can be shown. */
 export function findIncompleteStep(
   step: StepNumber,
-  selections: Pick<KitchenSelections, "layouts" | "cabinetStyles" | "boards" | "tapes">,
+  selections: Pick<KitchenSelections, SkippableStep> & { skipped?: readonly SkippableStep[] },
 ): { step: StepNumber; message: string } | null {
   const missing = REQUIREMENTS.find(
-    (requirement) => requirement.step < step && selections[requirement.key].length === 0,
+    (requirement) => requirement.step < step && !isStepDone(requirement.key, selections),
   );
   return missing ? { step: missing.step, message: missing.message } : null;
 }

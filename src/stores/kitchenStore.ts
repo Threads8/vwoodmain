@@ -2,8 +2,16 @@ import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { isCabinetStyle, isLayout, type CabinetStyle, type Layout } from "@/config/kitchenOptions";
+import type { SkippableStep } from "@/config/kitchenSteps";
 import { PRODUCTS } from "@/config/products";
 import { TAPES } from "@/config/tapes";
+
+/**
+ * A finish tried on the 2D preview. It belongs to the newest chosen board at the time it was
+ * picked, so choosing another board shows that board again. Kept here, not in the preview, so it
+ * survives moving between steps and switching layouts.
+ */
+export type PreviewFinish = { id: string | null; forBoard: string | null };
 
 export interface KitchenState {
   layouts: Layout[];
@@ -12,17 +20,28 @@ export interface KitchenState {
   tapes: string[];
   activeLayout: Layout | null;
   activeCabinetStyle: CabinetStyle | null;
+  /** Choice steps the customer chose to skip. */
+  skipped: SkippableStep[];
+  previewFinish: PreviewFinish | null;
   toggleLayout(id: Layout): void;
   toggleCabinetStyle(id: CabinetStyle): void;
   toggleBoard(id: string): void;
   toggleTape(id: string): void;
   setActiveLayout(id: Layout): void;
+  setPreviewFinish(finish: PreviewFinish): void;
+  skipStep(key: SkippableStep): void;
   reset(): void;
 }
 
 export type KitchenSelections = Pick<
   KitchenState,
-  "layouts" | "cabinetStyles" | "boards" | "tapes" | "activeLayout" | "activeCabinetStyle"
+  | "layouts"
+  | "cabinetStyles"
+  | "boards"
+  | "tapes"
+  | "activeLayout"
+  | "activeCabinetStyle"
+  | "skipped"
 >;
 
 const EMPTY: KitchenSelections = {
@@ -32,7 +51,10 @@ const EMPTY: KitchenSelections = {
   tapes: [],
   activeLayout: null,
   activeCabinetStyle: null,
+  skipped: [],
 };
+
+const SKIPPABLE: readonly SkippableStep[] = ["layouts", "cabinetStyles", "boards", "tapes"];
 
 const SERVER_STORAGE: StateStorage = {
   getItem: () => null,
@@ -53,6 +75,7 @@ export const useKitchenStore = create<KitchenState>()(
   persist(
     (set) => ({
       ...EMPTY,
+      previewFinish: null,
       toggleLayout: (id) =>
         set((state) => {
           const layouts = toggled(state.layouts, id);
@@ -77,7 +100,10 @@ export const useKitchenStore = create<KitchenState>()(
       toggleBoard: (id) => set((state) => ({ boards: toggled(state.boards, id) })),
       toggleTape: (id) => set((state) => ({ tapes: toggled(state.tapes, id) })),
       setActiveLayout: (id) => set({ activeLayout: id }),
-      reset: () => set(EMPTY),
+      setPreviewFinish: (previewFinish) => set({ previewFinish }),
+      skipStep: (key) =>
+        set((state) => (state.skipped.includes(key) ? {} : { skipped: [...state.skipped, key] })),
+      reset: () => set({ ...EMPTY, previewFinish: null }),
     }),
     {
       name: "vwood-kitchen",
@@ -94,6 +120,7 @@ export const useKitchenStore = create<KitchenState>()(
         tapes,
         activeLayout,
         activeCabinetStyle,
+        skipped,
       }) => ({
         layouts,
         cabinetStyles,
@@ -101,6 +128,7 @@ export const useKitchenStore = create<KitchenState>()(
         tapes,
         activeLayout,
         activeCabinetStyle,
+        skipped,
       }),
       // Drop anything no longer valid, such as a product removed from the catalog.
       merge: (persisted, current) => {
@@ -121,6 +149,7 @@ export const useKitchenStore = create<KitchenState>()(
             saved.activeCabinetStyle && cabinetStyles.includes(saved.activeCabinetStyle)
               ? saved.activeCabinetStyle
               : (cabinetStyles.at(-1) ?? null),
+          skipped: SKIPPABLE.filter((key) => saved.skipped?.includes(key)),
         };
       },
     },

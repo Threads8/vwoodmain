@@ -47,13 +47,15 @@ export const selectedMaterials = (boardIds: string[]) =>
 const describe = (item: CatalogItem) => `${item.name} (${item.code})`;
 
 export function buildSelectionMessage(selections: KitchenSelections): string {
+  // Steps can be skipped, so an empty list reads "Skipped" rather than a blank line.
+  const list = (values: string[]) => values.join(", ") || "Skipped";
   return [
     "My kitchen selections:",
-    `Kitchen layout: ${selections.layouts.map(layoutLabel).join(", ")}`,
-    `Cabinet style: ${selections.cabinetStyles.map(cabinetStyleLabel).join(", ")}`,
-    `Boards: ${selectedBoards(selections.boards).map(describe).join(", ")}`,
-    `Tapes: ${selectedTapes(selections.tapes).map(describe).join(", ")}`,
-    `Material: ${selectedMaterials(selections.boards).join(", ")}`,
+    `Kitchen layout: ${list(selections.layouts.map(layoutLabel))}`,
+    `Cabinet style: ${list(selections.cabinetStyles.map(cabinetStyleLabel))}`,
+    `Boards: ${list(selectedBoards(selections.boards).map(describe))}`,
+    `Tapes: ${list(selectedTapes(selections.tapes).map(describe))}`,
+    `Material: ${list(selectedMaterials(selections.boards))}`,
   ].join("\n");
 }
 

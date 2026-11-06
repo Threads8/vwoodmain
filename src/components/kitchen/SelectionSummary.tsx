@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useRef, type ReactNode, type RefObject } from "react";
 import { cabinetStyleLabel, layoutLabel } from "@/config/kitchenOptions";
-import type { StepPath } from "@/config/kitchenSteps";
+import { isStepDone, type SkippableStep, type StepPath } from "@/config/kitchenSteps";
 import type { CatalogItem } from "@/config/products";
 import { selectedBoards, selectedMaterials, selectedTapes } from "@/lib/kitchen-quote";
 import { useKitchenStore } from "@/stores/kitchenStore";
@@ -13,6 +13,7 @@ function Section({
   title,
   editTo,
   warning,
+  skipped = false,
   variant = "row",
   focusRef,
   children,
@@ -20,6 +21,8 @@ function Section({
   title: string;
   editTo?: StepPath;
   warning?: string | false;
+  /** The customer skipped this step and chose nothing. */
+  skipped?: boolean;
   variant?: "row" | "products";
   focusRef?: RefObject<HTMLHeadingElement | null>;
   children: ReactNode;
@@ -42,7 +45,7 @@ function Section({
             {warning}
           </p>
         )}
-        {children}
+        {skipped ? <p className="kc-summary-none">Skipped</p> : children}
       </div>
     </section>
   );
@@ -83,6 +86,7 @@ export function SelectionSummary() {
   const cabinetStyles = useKitchenStore((state) => state.cabinetStyles);
   const boardIds = useKitchenStore((state) => state.boards);
   const tapeIds = useKitchenStore((state) => state.tapes);
+  const skippedSteps = useKitchenStore((state) => state.skipped);
   const toggleLayout = useKitchenStore((state) => state.toggleLayout);
   const toggleCabinetStyle = useKitchenStore((state) => state.toggleCabinetStyle);
   const toggleBoard = useKitchenStore((state) => state.toggleBoard);
@@ -103,8 +107,18 @@ export function SelectionSummary() {
     };
 
   const materials = selectedMaterials(boardIds);
-  const complete =
-    layouts.length > 0 && cabinetStyles.length > 0 && boardIds.length > 0 && tapeIds.length > 0;
+  const selections = {
+    layouts,
+    cabinetStyles,
+    boards: boardIds,
+    tapes: tapeIds,
+    skipped: skippedSteps,
+  };
+  const done = (key: SkippableStep) => isStepDone(key, selections);
+  /** Skipped and still empty: show "Skipped" rather than a warning. */
+  const isSkipped = (key: SkippableStep) =>
+    selections[key].length === 0 && skippedSteps.includes(key);
+  const complete = done("layouts") && done("cabinetStyles") && done("boards") && done("tapes");
 
   return (
     <div className="kc-summary">
@@ -115,7 +129,8 @@ export function SelectionSummary() {
           editTo="/kitchen-design/boards"
           variant="products"
           focusRef={headings.boards}
-          warning={boardIds.length === 0 && "Choose at least one board to continue."}
+          skipped={isSkipped("boards")}
+          warning={!done("boards") && "Choose at least one board to continue."}
         >
           <ProductChips
             items={selectedBoards(boardIds)}
@@ -128,7 +143,8 @@ export function SelectionSummary() {
           editTo="/kitchen-design/tapes"
           variant="products"
           focusRef={headings.tapes}
-          warning={tapeIds.length === 0 && "Choose at least one tape to continue."}
+          skipped={isSkipped("tapes")}
+          warning={!done("tapes") && "Choose at least one tape to continue."}
         >
           <ProductChips
             items={selectedTapes(tapeIds)}
@@ -141,7 +157,8 @@ export function SelectionSummary() {
         title="Kitchen layout:"
         editTo="/kitchen-design/layout"
         focusRef={headings.layouts}
-        warning={layouts.length === 0 && "Choose at least one layout to continue."}
+        skipped={isSkipped("layouts")}
+        warning={!done("layouts") && "Choose at least one layout to continue."}
       >
         <ul className="kc-chips">
           {layouts.map((id) => (
@@ -157,7 +174,8 @@ export function SelectionSummary() {
         title="Cabinet style:"
         editTo="/kitchen-design/cabinet-style"
         focusRef={headings.styles}
-        warning={cabinetStyles.length === 0 && "Choose at least one cabinet style to continue."}
+        skipped={isSkipped("cabinetStyles")}
+        warning={!done("cabinetStyles") && "Choose at least one cabinet style to continue."}
       >
         <ul className="kc-chips">
           {cabinetStyles.map((id) => (
@@ -181,7 +199,11 @@ export function SelectionSummary() {
         )}
       </Section>
       <div className="kc-summary-footer">
-        <StepNav step={5} canContinue={complete} hint="Complete every section to continue" />
+        <StepNav
+          step={5}
+          canContinue={complete}
+          hint="Complete or skip every section to continue"
+        />
         <Link to="/kitchen-design/layout" className="kc-summary-edit-all">
           Edit Selection
         </Link>
