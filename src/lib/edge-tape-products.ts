@@ -160,6 +160,26 @@ const raw: RawTape[] = [
   },
 ];
 
+/**
+ * Carcass edge tapes from the product sheet that have no matching board. Only the fields the
+ * sheet gives are filled: it supplies no code, material, image or copy for these, so those stay
+ * empty. They have no detail page yet.
+ */
+export type SheetEdgeTape = {
+  categoryId: "edge-tape";
+  slug: string;
+  name: string;
+  size: string;
+  /** Finish exactly as written on the sheet; normalized to a filter key in the catalog. */
+  finish: string;
+  colors: ["white"];
+};
+
+export const CARCASS_EDGE_TAPES: SheetEdgeTape[] = [
+  { categoryId: "edge-tape", slug: "white-satin-carcass-edge-tape", name: "White Satin", size: "1x21 MM", finish: "Satin", colors: ["white"] },
+  { categoryId: "edge-tape", slug: "white-gloss-carcass-edge-tape", name: "White Gloss", size: "1x22 MM", finish: "High Gloss", colors: ["white"] },
+];
+
 const edgeTapeSlug = (boardSlug: string) => `${boardSlug}-edge-tape`;
 
 export type EdgeTapeDetailProduct = {

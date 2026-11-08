@@ -53,6 +53,7 @@ export function FilterPanel({ filters, counts, available, onChange, idPrefix, ch
               type="button"
               aria-pressed={selected}
               disabled={!selected && count === 0}
+              aria-disabled={(!selected && count === 0) || undefined}
               aria-label={
                 selected ? m.label : `${m.label}, ${count} ${count === 1 ? "product" : "products"}`
               }
@@ -89,21 +90,21 @@ export function FilterPanel({ filters, counts, available, onChange, idPrefix, ch
       >
         {finishes.map((f) => {
           const selected = filters.finishes.includes(f.key);
+          const count = counts.finish[f.key];
+          // A selected finish stays clickable so it can always be turned off.
+          const unavailable = !selected && count === 0;
           return (
             <button
               key={f.key}
               type="button"
               aria-pressed={selected}
-              disabled={!selected && counts.finish[f.key] === 0}
-              onClick={() =>
-                onChange({ ...filters, finishes: toggleValue(filters.finishes, f.key) })
-              }
-              className="rounded-(--radius-control) py-2 font-body text-[12px] font-semibold uppercase leading-[15px] disabled:opacity-40"
-              style={
-                selected
-                  ? { background: "#2F3131", color: "#F9F9F9" }
-                  : { background: "#D9D9D9", color: "#1A1C1C" }
-              }
+              aria-disabled={unavailable || undefined}
+              aria-label={`${f.label}, ${count} ${count === 1 ? "product" : "products"}`}
+              onClick={() => {
+                if (unavailable) return;
+                onChange({ ...filters, finishes: toggleValue(filters.finishes, f.key) });
+              }}
+              className="catalog-finish-option"
             >
               {f.label}
             </button>
@@ -125,6 +126,7 @@ export function FilterPanel({ filters, counts, available, onChange, idPrefix, ch
               title={s.label}
               aria-pressed={selected}
               disabled={!selected && counts.color[s.key] === 0}
+              aria-disabled={(!selected && counts.color[s.key] === 0) || undefined}
               onClick={() => onChange({ ...filters, colors: toggleValue(filters.colors, s.key) })}
               className="h-8 w-8 rounded-xl border transition-transform enabled:hover:scale-105 disabled:opacity-30"
               style={{

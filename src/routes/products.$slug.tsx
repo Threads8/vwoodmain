@@ -102,7 +102,7 @@ function ProductDetailContent({ board }: { board: Board | SinkProduct | BinDetai
               <button type="button" aria-label="Decrease quantity" onClick={() => setQty(q => Math.max(1, q - 1))} disabled={qty <= 1} className="product-qty-btn"><Minus size={16} aria-hidden="true" /></button>
             </div>
             <fieldset className="product-sheet-sizes">
-              <legend className={detail?.hideSizeLabel ? "sr-only" : undefined}>{detail?.hideSizeLabel ? "Size" : "Sheet Size"}</legend>
+              <legend className={detail?.hideSizeLabel ? "sr-only" : undefined}>{board.categoryId === "sink" || board.categoryId === "rubbish-bin" ? "Dimension" : detail?.hideSizeLabel ? "Size" : "Sheet Size"}</legend>
               {sizes.map(option => (
                 <label key={option}>
                   <input type="radio" name="sheet-size" value={option} checked={size === option} onChange={() => setSize(option)} />

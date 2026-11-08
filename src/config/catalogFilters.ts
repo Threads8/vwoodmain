@@ -25,3 +25,16 @@ export const COLOR_OPTIONS = [
 export type MaterialKey = (typeof MATERIAL_OPTIONS)[number]["key"];
 export type FinishKey = (typeof FINISH_OPTIONS)[number]["key"];
 export type ColorKey = (typeof COLOR_OPTIONS)[number]["key"];
+
+/** Lowercase, trimmed, hyphen-separated form, so "High Gloss", " HIGH_GLOSS " and "high-gloss" match. */
+export const normalizeFilterValue = (value: string) =>
+  value.trim().toLowerCase().replace(/[\s_]+/g, "-");
+
+/** The stored finish key for a sheet or URL value, matched by key or label; undefined if unknown. */
+export function normalizeFinish(value: unknown): FinishKey | undefined {
+  if (typeof value !== "string") return undefined;
+  const wanted = normalizeFilterValue(value);
+  return FINISH_OPTIONS.find(
+    (option) => option.key === wanted || normalizeFilterValue(option.label) === wanted,
+  )?.key;
+}

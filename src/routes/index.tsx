@@ -250,8 +250,8 @@ function Home() {
                 <span className="absolute bottom-[22%] left-full ml-2 hidden h-px w-[40vw] bg-primary-foreground/80 md:block" />
               </div>
             </div>
-            <p className="mt-3 px-4 text-center font-body text-[clamp(13px,1.05vw,15px)] font-extralight text-[#E5E7EB]">Premium MDF boards, modern fittings, and smart kitchen solutions</p>
-            <p className="mt-1 text-[clamp(12px,1vw,14px)] font-light tracking-[0.3em]">All in one place</p>
+            <p className="home-hero-tagline mt-3 px-4">Premium MDF boards, modern fittings, and smart kitchen solutions</p>
+            <p className="home-hero-strapline mt-1 px-4">All in one place</p>
           </div>
         </div>
       </section>

@@ -2,12 +2,14 @@ import {
   COLOR_OPTIONS,
   FINISH_OPTIONS,
   MATERIAL_OPTIONS,
+  normalizeFilterValue,
   type ColorKey,
   type FinishKey,
   type MaterialKey,
 } from "@/config/catalogFilters";
 
-export type Filterable = { material: MaterialKey; finish: FinishKey; colors: readonly ColorKey[] };
+/** Material is optional: a product whose sheet gives none is hidden by any Material filter. */
+export type Filterable = { material?: MaterialKey | undefined; finish: FinishKey; colors: readonly ColorKey[] };
 
 export type ProductFilters = {
   materials: MaterialKey[];
@@ -24,7 +26,8 @@ export function filterProducts<T extends Filterable>(
 ): T[] {
   return products.filter(
     (product) =>
-      (filters.materials.length === 0 || filters.materials.includes(product.material)) &&
+      (filters.materials.length === 0 ||
+        (product.material !== undefined && filters.materials.includes(product.material))) &&
       (filters.finishes.length === 0 || filters.finishes.includes(product.finish)) &&
       (filters.colors.length === 0 ||
         product.colors.some((color) => filters.colors.includes(color))),
@@ -63,7 +66,7 @@ export type AvailableOptions = {
 /** The options that at least one product in this category has; the others are not shown. */
 export function availableOptions(products: readonly Filterable[]): AvailableOptions {
   return {
-    material: new Set(products.map((product) => product.material)),
+    material: new Set(products.flatMap((product) => (product.material ? [product.material] : []))),
     finish: new Set(products.map((product) => product.finish)),
     color: new Set(products.flatMap((product) => product.colors)),
   };
@@ -94,7 +97,8 @@ export type CatalogSearch = {
 
 function parseList<K extends string>(value: unknown, options: readonly { key: K }[]): K[] {
   const raw = Array.isArray(value) ? value.join(",") : typeof value === "string" ? value : "";
-  const requested = new Set(raw.split(",").map((item) => item.trim()));
+  // Unknown values are ignored; "SATIN" and " satin " match the "satin" key.
+  const requested = new Set(raw.split(",").map(normalizeFilterValue));
   // Keep config order so equivalent URLs produce the same state.
   return options.map(({ key }) => key).filter((key) => requested.has(key));
 }

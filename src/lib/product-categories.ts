@@ -12,6 +12,19 @@ export const PRODUCT_CATEGORIES = [
 
 export type ProductCategory = typeof PRODUCT_CATEGORIES[number]["id"];
 
+/**
+ * Categories whose listing cards leave out the short description. Sink and Edge Tape records carry
+ * board-finish copy from the Figma export, so it is not rendered on their cards. The data stays:
+ * detail pages still read it.
+ */
+export const HIDE_DESCRIPTION_CATEGORIES: readonly ProductCategory[] = ["sink", "edge-tape"];
+
+/** Compares on the normalized slug, so "Edge Tape", " EDGE-TAPE " and "edge_tape" all match. */
+export const showsCardDescription = (categoryId: string) =>
+  !(HIDE_DESCRIPTION_CATEGORIES as readonly string[]).includes(
+    categoryId.trim().toLowerCase().replace(/[\s_]+/g, "-"),
+  );
+
 export function parseProductCategory(value: unknown): ProductCategory {
   return PRODUCT_CATEGORIES.find((category) => category.id === value)?.id ?? "mdf-board";
 }

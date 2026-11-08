@@ -13,13 +13,14 @@ const MAP_EMBED = `https://maps.google.com/maps?q=${encodeURIComponent("40 Cryer
 /**
  * Site navigation: the header links and the footer "Quick Links:" list both map over this one
  * array, so a label or order change here updates both. Contact is not part of it: the header
- * has its own "Request Quote" button and the footer its own Contact column.
+ * has its own "Request Quote" button and the footer its own Contact column. `headerLabel`, when
+ * set, replaces the label in the header and mobile menu only.
  */
 const NAV = [
   { to: "/", label: "Home" },
   { to: "/products", label: "Product" },
   { to: "/kitchen-design", label: "Kitchen Design" },
-  { to: "/about", label: "About" },
+  { to: "/about", label: "About", headerLabel: "About Us" },
   { to: "/project-gallery", label: "Project Gallery" },
 ] as const;
 
@@ -60,7 +61,7 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean | undefined 
             activeProps={{ className: "font-semibold" }}
             className={`${NAV_LINK_CLASS} hidden shrink-0 whitespace-nowrap lg:inline`}
           >
-            {n.label}
+            {"headerLabel" in n ? n.headerLabel : n.label}
           </Link>
         ))}
         <div className="flex shrink-0 items-center gap-2">
@@ -92,7 +93,7 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean | undefined 
                 activeProps={{ "aria-current": "page" }}
                 onClick={() => setMenuOpen(false)}
               >
-                {n.label}
+                {"headerLabel" in n ? n.headerLabel : n.label}
               </Link>
             </li>
           ))}

@@ -5,7 +5,7 @@ import { Page } from "@/components/site/Layout";
 import { FilterPanel } from "@/components/catalog/FilterPanel";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { COLOR_OPTIONS, FINISH_OPTIONS, MATERIAL_OPTIONS } from "@/config/catalogFilters";
-import { PRODUCT_CATEGORIES, parseProductCategory, categoryOptionLabel } from "@/lib/product-categories";
+import { PRODUCT_CATEGORIES, parseProductCategory, categoryOptionLabel, showsCardDescription } from "@/lib/product-categories";
 import { getCatalogProducts, type CatalogProduct } from "@/lib/catalog-products";
 import {
   availableOptions,
@@ -267,8 +267,9 @@ function ProductMedia({ product }: { product: CatalogProduct }) {
 }
 
 function ProductCard({ product }: { product: CatalogProduct }) {
-  return (
-    <Link to="/products/$slug" params={{ slug: product.slug }} className="group block">
+  const showDescription = showsCardDescription(product.categoryId) && Boolean(product.description);
+  const body = (
+    <>
       <div className="relative aspect-[277/347] overflow-hidden" style={{ background: "#F3F3F3" }}>
         <ProductMedia product={product} />
         {product.textureCount > 1 && (
@@ -287,18 +288,30 @@ function ProductCard({ product }: { product: CatalogProduct }) {
       </h3>
       <p className="catalog-card-meta">
         {product.code && <span>{product.code}</span>}
+        {product.size && <span>{product.size}</span>}
         <span>{finishLabel(product.finish)}</span>
       </p>
-      <p className="mt-1.5 max-w-[320px] font-body text-[14px] leading-[1.625]" style={{ color: "#51443C" }}>
-        {product.description}
-      </p>
-      <span
-        className="mt-4 inline-block border-b pb-0.5 font-body text-[13px] font-semibold tracking-[0.5px] uppercase"
-        style={{ borderColor: "#6F4627", color: "#6F4627" }}
-      >
-        Details
-      </span>
-    </Link>
+      {showDescription && (
+        <p className="mt-1.5 max-w-[320px] font-body text-[14px] leading-[1.625]" style={{ color: "#51443C" }}>
+          {product.description}
+        </p>
+      )}
+      {product.hasDetailPage && (
+        <span
+          className="mt-4 inline-block border-b pb-0.5 font-body text-[13px] font-semibold tracking-[0.5px] uppercase"
+          style={{ borderColor: "#6F4627", color: "#6F4627" }}
+        >
+          Details
+        </span>
+      )}
+    </>
+  );
+  // Cards without a description get a fixed 24px foot so rows stay even.
+  const className = `group block${showDescription ? "" : " catalog-card-compact"}`;
+  return product.hasDetailPage ? (
+    <Link to="/products/$slug" params={{ slug: product.slug }} className={className}>{body}</Link>
+  ) : (
+    <article className={className}>{body}</article>
   );
 }
 
@@ -509,7 +522,7 @@ function SinkRange() {
         <Link key={sink.slug} to="/products/$slug" params={{ slug: sink.slug }} className="product-range-card">
           <img src={sink.image} alt={sink.name} loading="lazy" />
           <h3 className="text-h3">{sink.name}</h3>
-          <p>{sink.desc}</p>
+          {showsCardDescription(sink.categoryId) && <p>{sink.desc}</p>}
         </Link>
       ))}
     </section>
@@ -523,7 +536,7 @@ function BinRange() {
         const content = <>
           <img src={bin.image} alt={bin.name} loading="lazy" />
           <h3 className="text-h3">{bin.name}</h3>
-          <p>{bin.desc}</p>
+          {showsCardDescription("rubbish-bin") && <p>{bin.desc}</p>}
         </>;
         return bin.detailSlug
           ? <Link key={bin.slug} to="/products/$slug" params={{ slug: bin.detailSlug }} className="product-range-card">{content}</Link>

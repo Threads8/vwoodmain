@@ -1,11 +1,12 @@
 import {
-  FINISH_OPTIONS,
+  COLOR_OPTIONS,
+  normalizeFinish,
   type ColorKey,
   type FinishKey,
   type MaterialKey,
 } from "@/config/catalogFilters";
 import { CATALOG_ATTRIBUTES } from "./catalog-attributes";
-import { EDGE_TAPE_PRODUCTS, type EdgeTapeCrop } from "./edge-tape-products";
+import { CARCASS_EDGE_TAPES, EDGE_TAPE_PRODUCTS, type EdgeTapeCrop } from "./edge-tape-products";
 import { PRODUCT_DETAILS } from "./product-details";
 import { PRODUCT_IMAGES } from "./product-images";
 import { BOARDS, type Board } from "./site-data";
@@ -19,8 +20,14 @@ export type CatalogProduct = {
   /** Supplier product code, when the catalog has one. */
   code?: string;
   description: string;
-  material: MaterialKey;
+  /** Absent when the product sheet gives no material. */
+  material?: MaterialKey;
+  /** Normalized key: "matte" | "satin" | "high-gloss" | "woodgrain". */
   finish: FinishKey;
+  /** Sheet size, e.g. "1x21 MM", for products that list one on the card. */
+  size?: string;
+  /** False for products without a detail page; their card is not a link. */
+  hasDetailPage: boolean;
   colors: ColorKey[];
   textureCount: number;
   image?: string;
@@ -34,10 +41,12 @@ export type CatalogProduct = {
 };
 
 function finishKey(label: string): FinishKey {
-  const option = FINISH_OPTIONS.find((item) => item.label === label);
-  if (!option) throw new Error(`Unknown finish "${label}": add it to src/config/catalogFilters.ts`);
-  return option.key;
+  const key = normalizeFinish(label);
+  if (!key) throw new Error(`Unknown finish "${label}": add it to src/config/catalogFilters.ts`);
+  return key;
 }
+
+const WHITE_SWATCH = COLOR_OPTIONS.find((option) => option.key === "white")!.hex;
 
 function attributesFor(board: Board) {
   const attributes = CATALOG_ATTRIBUTES[board.slug];
@@ -63,6 +72,7 @@ export const BOARD_CATALOG: CatalogProduct[] = BOARDS.map((board) => {
     code: board.code,
     description: description ?? board.desc,
     finish: finishKey(board.finish),
+    hasDetailPage: true,
     ...attributes,
     ...(image ? { image } : {}),
     images,
@@ -72,7 +82,7 @@ export const BOARD_CATALOG: CatalogProduct[] = BOARDS.map((board) => {
   };
 });
 
-export const EDGE_TAPE_CATALOG: CatalogProduct[] = EDGE_TAPE_PRODUCTS.map((tape) => {
+export const EDGE_TAPE_CATALOG: CatalogProduct[] = EDGE_TAPE_PRODUCTS.map((tape): CatalogProduct => {
   const board = BOARDS.find((item) => item.name === tape.name)!;
   const { material, colors, textureCount } = attributesFor(board);
   // Only tapes with a supplied detail frame have a tape code; the board's code is not reused.
@@ -86,6 +96,7 @@ export const EDGE_TAPE_CATALOG: CatalogProduct[] = EDGE_TAPE_PRODUCTS.map((tape)
     description: tape.desc,
     material,
     finish: finishKey(tape.finish),
+    hasDetailPage: true,
     colors,
     textureCount,
     ...(tape.image ? { image: tape.image } : {}),
@@ -94,7 +105,24 @@ export const EDGE_TAPE_CATALOG: CatalogProduct[] = EDGE_TAPE_PRODUCTS.map((tape)
     swatch: tape.swatch,
     needsUniqueCopy: false,
   };
-});
+}).concat(
+  CARCASS_EDGE_TAPES.map((tape): CatalogProduct => ({
+    id: tape.slug,
+    slug: tape.slug,
+    categoryId: tape.categoryId,
+    name: tape.name,
+    description: "",
+    finish: finishKey(tape.finish),
+    size: tape.size,
+    hasDetailPage: false,
+    colors: tape.colors,
+    textureCount: 1,
+    images: [],
+    swatch: WHITE_SWATCH,
+    swatchBorder: "1px solid rgba(131,116,107,0.35)",
+    needsUniqueCopy: false,
+  })),
+);
 
 export const getCatalogProducts = (category: "mdf-board" | "edge-tape") =>
   category === "edge-tape" ? EDGE_TAPE_CATALOG : BOARD_CATALOG;
