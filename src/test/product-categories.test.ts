@@ -55,15 +55,32 @@ describe("Product categories", () => {
     expect(findProduct("missing")).toBeUndefined();
   });
 
-  it("links bin cards only to bin detail pages that exist", () => {
-    expect(findProduct("pull-out-rubbish-bin")?.code).toBe("WB.0240.C");
+  it("links every bin card to a detail page keyed by its code", () => {
+    const linked = BIN_PRODUCTS.map((bin) => bin.detailSlug);
+    expect(linked).toEqual(["wb-0240-c", "wb-0240-a", "wb-0144", "wb-0240-c", "wb-0144", "sl6118"]);
+    expect(linked.every((slug) => slug && findProduct(slug)?.slug === slug)).toBe(true);
+    expect(["wb-0240-c", "wb-0240-a", "wb-0144", "sl6118"].map((slug) => findProduct(slug)?.code)).toEqual(["WB.0240.C", "WB.0240.A", "WB.0144", "SL6118"]);
+    expect(findProduct("sl6118")?.name).toBe("Drawer Runner");
     expect(findProduct("rubbish-bin-2")).toBeUndefined();
-    const linked = BIN_PRODUCTS.flatMap((bin) => bin.detailSlug ?? []);
-    expect(linked).toEqual(["pull-out-rubbish-bin", "rubbish-bin-wb-0240-a", "pull-out-rubbish-bin", "drawer-runner"]);
-    expect(linked.every((slug) => findProduct(slug))).toBe(true);
-    expect(findProduct("rubbish-bin-wb-0240-a")?.code).toBe("WB.0240.A");
-    expect(findProduct("drawer-runner")?.code).toBe("SL6118");
-    expect(findProduct("drawer-runner")?.name).toBe("Drawer Runner");
+  });
+
+  it("keeps earlier bin URLs and other casings resolving to the canonical slug", () => {
+    expect(findProduct("pull-out-rubbish-bin")?.slug).toBe("wb-0240-c");
+    expect(findProduct("rubbish-bin-wb-0240-a")?.slug).toBe("wb-0240-a");
+    expect(findProduct("drawer-runner")?.slug).toBe("sl6118");
+    expect(findProduct(" WB-0144 ")?.slug).toBe("wb-0144");
+  });
+
+  it("builds URL-safe slugs from codes with dots, spaces, plus signs and stars", async () => {
+    const { productSlug } = await import("@/lib/product-slug");
+    expect(["WB.0144", "WB.0240.C", " LS-7145HAr ", "Black+White+Chrome", "R255*L310*H330mm"].map(productSlug))
+      .toEqual(["wb-0144", "wb-0240-c", "ls-7145har", "black-white-chrome", "r255-l310-h330mm"]);
+  });
+
+  it("gives WB.0144 only the fields from the product sheet, as written", () => {
+    const detail = PRODUCT_DETAILS["wb-0144"]!;
+    expect([detail.code, detail.sizes, detail.colorName, detail.finishName, detail.features])
+      .toEqual(["WB.0144", ["R255*L310*H330mm"], "Black+White+Chrome", "Stainless Steel+Plastic", []]);
   });
 
   it("lists the sink range as available", () => {

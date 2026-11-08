@@ -7,7 +7,8 @@ import { PRODUCT_DETAILS } from "@/lib/product-details";
 
 export const Route = createFileRoute("/contact")({
   validateSearch: (search: Record<string, unknown>): { product?: string | undefined; quantity?: number | undefined; size?: string | undefined } => {
-    const product = typeof search["product"] === "string" && findProduct(search["product"]) ? search["product"] : undefined;
+    // Store the canonical slug, so earlier bin URLs still find their sizes.
+    const product = typeof search["product"] === "string" ? findProduct(search["product"])?.slug : undefined;
     const quantity = Number(search["quantity"]);
     const allowedSizes = product ? PRODUCT_DETAILS[product]?.sizes ?? ["2440x1220", "2800x1220"] : [];
     return {

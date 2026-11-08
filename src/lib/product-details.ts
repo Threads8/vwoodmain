@@ -15,6 +15,10 @@ export type ProductDetail = {
   sides?: string;
   sizeNote?: string;
   hideSizeLabel?: boolean;
+  /** Colour exactly as the product sheet writes it, e.g. "Black+White+Chrome". Display text only. */
+  colorName?: string;
+  /** Finish/material exactly as the product sheet writes it, e.g. "Stainless Steel+Plastic". Display text only. */
+  finishName?: string;
 };
 
 const builderAsset = (hash: string, width: number) =>
@@ -663,7 +667,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
     "showFeatureIcons": false,
     "hero": "https://api.builder.io/api/v1/image/assets/TEMP/ff7592e4517ce794bcf842dcf929f745e52f884e?width=1082"
   },
-  "pull-out-rubbish-bin": {
+  "wb-0240-c": {
     "code": "WB.0240.C",
     "surfaceDesc": "A clean, soft white with a smooth matt finish that suits wardrobes, display cabinetry and joinery alike. Its low-glare surface pairs beautifully with brass and gold hardware for an elegant, contemporary look.",
     "features": [
@@ -680,7 +684,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
     "showFeatureIcons": false,
     "hero": "https://api.builder.io/api/v1/image/assets/TEMP/54a80f0e010eba9923805849cad005016e4179bb?width=1082"
   },
-  "rubbish-bin-wb-0240-a": {
+  "wb-0240-a": {
     "code": "WB.0240.A",
     "surfaceDesc": "A clean, soft white with a smooth matt finish that suits wardrobes, display cabinetry and joinery alike. Its low-glare surface pairs beautifully with brass and gold hardware for an elegant, contemporary look.",
     "features": [
@@ -699,7 +703,23 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
     "sizeNote": "For 300mm Cabinet, 18L+6Lr",
     "hideSizeLabel": true
   },
-  "drawer-runner": {
+  // Round bin from the product sheet. Only the sheet's fields are filled; it gives no copy or features.
+  "wb-0144": {
+    "code": "WB.0144",
+    "surfaceDesc": "",
+    "features": [],
+    "color": "#FFF",
+    "sizes": [
+      "R255*L310*H330mm"
+    ],
+    "images": [],
+    "imageWidths": [],
+    "showFeatureIcons": false,
+    "hero": "https://api.builder.io/api/v1/image/assets/TEMP/65934b9cca13f28f0f8f3cd92cf08b14c9b1688b?width=1098",
+    "colorName": "Black+White+Chrome",
+    "finishName": "Stainless Steel+Plastic"
+  },
+  "sl6118": {
     "code": "SL6118",
     "surfaceDesc": "A clean, soft white with a smooth matt finish that suits wardrobes, display cabinetry and joinery alike. Its low-glare surface pairs beautifully with brass and gold hardware for an elegant, contemporary look.",
     "features": [

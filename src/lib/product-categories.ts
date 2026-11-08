@@ -1,4 +1,4 @@
-import { BIN_DETAIL_PRODUCTS, BIN_PRODUCTS, type BinDetailProduct } from "./bin-products";
+import { BIN_DETAIL_PRODUCTS, BIN_PRODUCTS, LEGACY_BIN_SLUGS, type BinDetailProduct } from "./bin-products";
 import { EDGE_TAPE_DETAIL_PRODUCTS, EDGE_TAPE_PRODUCTS, type EdgeTapeDetailProduct } from "./edge-tape-products";
 import { BOARDS, type Board } from "./site-data";
 import { SINK_PRODUCTS, type SinkProduct } from "./sink-products";
@@ -36,7 +36,13 @@ export function getCategoryProducts(category: ProductCategory) {
   return BOARDS.filter((product) => product.categoryId === category);
 }
 
-export function findProduct(slug: string): Board | SinkProduct | BinDetailProduct | EdgeTapeDetailProduct | undefined {
+/**
+ * Looks a product up by its URL slug, ignoring case and surrounding spaces, and resolving the
+ * earlier bin URLs. The result's `slug` is the canonical one; callers redirect when it differs.
+ */
+export function findProduct(rawSlug: string): Board | SinkProduct | BinDetailProduct | EdgeTapeDetailProduct | undefined {
+  const key = rawSlug.trim().toLowerCase();
+  const slug = LEGACY_BIN_SLUGS[key] ?? key;
   return BOARDS.find((board) => board.slug === slug)
     ?? SINK_PRODUCTS.find((sink) => sink.slug === slug)
     ?? BIN_DETAIL_PRODUCTS.find((bin) => bin.slug === slug)

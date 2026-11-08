@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { useRef, useState, type CSSProperties } from "react";
 import { ArrowRight, Plus, Minus } from "lucide-react";
 import { Lightbox } from "@/components/Lightbox";
@@ -26,6 +26,10 @@ export const Route = createFileRoute("/products/$slug")({
   loader: ({ params }) => {
     const board = findProduct(params.slug);
     if (!board) throw notFound();
+    // Earlier or differently-cased URLs (e.g. /products/pull-out-rubbish-bin) move to the canonical slug.
+    if (board.slug !== params.slug) {
+      throw redirect({ to: "/products/$slug", params: { slug: board.slug }, replace: true, statusCode: 301 });
+    }
     return { board };
   },
   head: ({ loaderData }) => ({
@@ -41,7 +45,22 @@ export const Route = createFileRoute("/products/$slug")({
       : [{ title: "Product unavailable" }, { name: "robots", content: "noindex" }],
   }),
   component: Detail,
+  notFoundComponent: ProductNotFound,
 });
+
+function ProductNotFound() {
+  return (
+    <Page>
+      <section className="product-not-found site-container site-section">
+        <h1 className="text-h1">Product not found</h1>
+        <p className="text-copy">This product is not in our catalog, or its link has changed.</p>
+        <Link to="/products" className="product-detail-action product-detail-action-primary">
+          Back to the catalog <ArrowRight size={12} aria-hidden="true" />
+        </Link>
+      </section>
+    </Page>
+  );
+}
 
 function Detail() {
   const { board } = Route.useLoaderData();
@@ -50,7 +69,9 @@ function Detail() {
 
 function ProductDetailContent({ board }: { board: Board | SinkProduct | BinDetailProduct | EdgeTapeDetailProduct }) {
   const detail = PRODUCT_DETAILS[board.slug];
-  const sizes = detail?.sizes ?? ["2440x1220", "2800x1220"];
+  // Only boards fall back to the standard sheet sizes; other products show just what their record gives.
+  const isSheet = board.categoryId === "mdf-board" || board.categoryId === "edge-tape";
+  const sizes = detail?.sizes ?? (isSheet ? ["2440x1220", "2800x1220"] : []);
   const [qty, setQty] = useState(2);
   const [size, setSize] = useState(sizes[0]);
   const images = detail?.images ?? [IMG.barKitchen, IMG.brightKitchen, IMG.woodKitchen];
@@ -95,13 +116,16 @@ function ProductDetailContent({ board }: { board: Board | SinkProduct | BinDetai
               <div><dt>Thickness</dt><dd>18MM</dd></div>
               <div><dt>Finish</dt><dd>{board.sides}</dd></div>
               </>}
+              {/* Sheet text as given ("Black+White+Chrome"): shown, never parsed or put in a URL. */}
+              {detail?.colorName && <div><dt>Color</dt><dd>{detail.colorName}</dd></div>}
+              {detail?.finishName && <div><dt>Finish</dt><dd>{detail.finishName}</dd></div>}
             </dl>
             <div className="product-quantity" role="group" aria-label={board.categoryId === "mdf-board" ? "Sheet quantity" : "Quantity"}>
               <button type="button" aria-label="Increase quantity" onClick={() => setQty(q => q + 1)} className="product-qty-btn"><Plus size={12} aria-hidden="true" /></button>
               <output aria-live="polite" aria-label={`Quantity ${qty}`}>{qty}</output>
               <button type="button" aria-label="Decrease quantity" onClick={() => setQty(q => Math.max(1, q - 1))} disabled={qty <= 1} className="product-qty-btn"><Minus size={16} aria-hidden="true" /></button>
             </div>
-            <fieldset className="product-sheet-sizes">
+            {sizes.length > 0 && <fieldset className="product-sheet-sizes">
               <legend className={detail?.hideSizeLabel ? "sr-only" : undefined}>{board.categoryId === "sink" || board.categoryId === "rubbish-bin" ? "Dimension" : detail?.hideSizeLabel ? "Size" : "Sheet Size"}</legend>
               {sizes.map(option => (
                 <label key={option}>
@@ -110,7 +134,7 @@ function ProductDetailContent({ board }: { board: Board | SinkProduct | BinDetai
                 </label>
               ))}
               {detail?.sizeNote && <p className="product-size-note">{detail.sizeNote}</p>}
-            </fieldset>
+            </fieldset>}
             {detail?.showFeatureIcons !== false && <img src={detail?.icons ?? featureIcons} alt={detail?.iconsAlt ?? "Silk Touch, Long Durability, Anti Fingerprint, Color Stability, Eco-friendly"} loading="lazy" className="product-feature-icons" />}
           </div>
           <aside className="product-detail-aside">
