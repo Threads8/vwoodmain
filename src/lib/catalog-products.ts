@@ -16,6 +16,8 @@ export type CatalogProduct = {
   slug: string;
   categoryId: "mdf-board" | "edge-tape";
   name: string;
+  /** Supplier product code, when the catalog has one. */
+  code?: string;
   description: string;
   material: MaterialKey;
   finish: FinishKey;
@@ -58,6 +60,7 @@ export const BOARD_CATALOG: CatalogProduct[] = BOARDS.map((board) => {
     slug: board.slug,
     categoryId: "mdf-board",
     name: board.name,
+    code: board.code,
     description: description ?? board.desc,
     finish: finishKey(board.finish),
     ...attributes,
@@ -72,11 +75,14 @@ export const BOARD_CATALOG: CatalogProduct[] = BOARDS.map((board) => {
 export const EDGE_TAPE_CATALOG: CatalogProduct[] = EDGE_TAPE_PRODUCTS.map((tape) => {
   const board = BOARDS.find((item) => item.name === tape.name)!;
   const { material, colors, textureCount } = attributesFor(board);
+  // Only tapes with a supplied detail frame have a tape code; the board's code is not reused.
+  const code = PRODUCT_DETAILS[tape.slug]?.code;
   return {
     id: tape.slug,
     slug: tape.slug,
     categoryId: "edge-tape",
     name: tape.name,
+    ...(code ? { code } : {}),
     description: tape.desc,
     material,
     finish: finishKey(tape.finish),

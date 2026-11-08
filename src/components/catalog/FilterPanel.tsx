@@ -3,8 +3,8 @@ import { COLOR_OPTIONS, FINISH_OPTIONS, MATERIAL_OPTIONS } from "@/config/catalo
 import {
   EMPTY_PRODUCT_FILTERS,
   hasActiveFilters,
-  toggleMaterial,
   toggleValue,
+  type AvailableOptions,
   type FacetCounts,
   type ProductFilters,
 } from "@/lib/catalog-filters";
@@ -12,6 +12,8 @@ import {
 type Props = {
   filters: ProductFilters;
   counts: FacetCounts;
+  /** Options the current category has products for; only these are shown. */
+  available: AvailableOptions;
   onChange: (filters: ProductFilters) => void;
   /** Keeps heading ids unique when the panel renders in both the sidebar and the drawer. */
   idPrefix: string;
@@ -27,8 +29,11 @@ function isLight(hex: string) {
   return (0.299 * r! + 0.587 * g! + 0.114 * b!) / 255 > 0.85;
 }
 
-export function FilterPanel({ filters, counts, onChange, idPrefix, children }: Props) {
+export function FilterPanel({ filters, counts, available, onChange, idPrefix, children }: Props) {
   const active = hasActiveFilters(filters);
+  const materials = MATERIAL_OPTIONS.filter((option) => available.material.has(option.key));
+  const finishes = FINISH_OPTIONS.filter((option) => available.finish.has(option.key));
+  const colors = COLOR_OPTIONS.filter((option) => available.color.has(option.key));
   return (
     <>
       <p id={`${idPrefix}-material`} className={headingClass} style={headingStyle}>
@@ -39,8 +44,8 @@ export function FilterPanel({ filters, counts, onChange, idPrefix, children }: P
         aria-labelledby={`${idPrefix}-material`}
         className="mt-5 flex flex-col gap-3.5"
       >
-        {MATERIAL_OPTIONS.map((m) => {
-          const selected = filters.material === m.key;
+        {materials.map((m) => {
+          const selected = filters.materials.includes(m.key);
           const count = counts.material[m.key];
           return (
             <button
@@ -51,7 +56,9 @@ export function FilterPanel({ filters, counts, onChange, idPrefix, children }: P
               aria-label={
                 selected ? m.label : `${m.label}, ${count} ${count === 1 ? "product" : "products"}`
               }
-              onClick={() => onChange(toggleMaterial(filters, m.key))}
+              onClick={() =>
+                onChange({ ...filters, materials: toggleValue(filters.materials, m.key) })
+              }
               className="flex items-center justify-between text-left disabled:opacity-40"
             >
               <span
@@ -80,7 +87,7 @@ export function FilterPanel({ filters, counts, onChange, idPrefix, children }: P
         aria-labelledby={`${idPrefix}-finish`}
         className="mt-3 grid grid-cols-2 gap-2"
       >
-        {FINISH_OPTIONS.map((f) => {
+        {finishes.map((f) => {
           const selected = filters.finishes.includes(f.key);
           return (
             <button
@@ -108,7 +115,7 @@ export function FilterPanel({ filters, counts, onChange, idPrefix, children }: P
         Color Palette
       </p>
       <div role="group" aria-labelledby={`${idPrefix}-color`} className="mt-4 flex gap-3">
-        {COLOR_OPTIONS.map((s) => {
+        {colors.map((s) => {
           const selected = filters.colors.includes(s.key);
           return (
             <button

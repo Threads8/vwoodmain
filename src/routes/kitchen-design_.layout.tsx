@@ -4,7 +4,7 @@ import { KitchenStep } from "@/components/kitchen/KitchenStep";
 import { LayoutCard } from "@/components/kitchen/LayoutCard";
 import { StepNav } from "@/components/kitchen/StepNav";
 import { LAYOUTS } from "@/config/kitchenOptions";
-import { planMask } from "@/config/planFinishes";
+import { planMask, planNeutral } from "@/config/planFinishes";
 import { PLAN_IMAGE_FILES } from "@/config/planImages";
 import { useKitchenStore } from "@/stores/kitchenStore";
 
@@ -26,6 +26,8 @@ function LayoutStep() {
     for (const src of PLAN_IMAGE_FILES) {
       new Image().src = src;
       new Image().src = planMask(src);
+      const neutral = planNeutral(src);
+      if (neutral) new Image().src = neutral;
     }
   }, []);
 

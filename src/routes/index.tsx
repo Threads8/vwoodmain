@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { ArrowRight, Star } from "lucide-react";
+import { ArrowRight, ChevronDown, Star } from "lucide-react";
 import { Page } from "@/components/site/Layout";
 import { HeroMaterials } from "@/components/site/HeroMaterials";
 import { formFields, sendEnquiry } from "@/lib/enquiry";
@@ -17,7 +17,7 @@ import inspiration4 from "@/assets/inspiration/inspiration-4.jpg";
 import white from "@/assets/white-kitchen.jpg";
 import woodFinish from "@/assets/wood-finish-kitchen.jpg";
 import project from "@/assets/project-kitchen.jpg";
-import samples from "@/assets/contact-samples.png";
+import samples from "@/assets/contact-samples.webp";
 import recent1 from "@/assets/recent/recent-project-1.png";
 import recent2 from "@/assets/recent/recent-project-2.png";
 import recent3 from "@/assets/recent/recent-project-3.png";
@@ -359,9 +359,14 @@ function Home() {
   );
 }
 
+const TOUCH_CATEGORIES = ["MDF Board", "Sink", "Rubbish Bin", "Edge Tape", "Complete Kitchen"];
+
 function ContactBlock() {
   const [sent, setSent] = useState(false);
   const [status, setStatus] = useState<"idle" | "sending" | "failed">("idle");
+  const [hasCategory, setHasCategory] = useState(false);
+  // Inline messages for the browser's own required/email checks, shown in reserved space.
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setStatus("sending");
@@ -372,28 +377,67 @@ function ContactBlock() {
       setStatus("failed");
     }
   };
-  const field = "w-full rounded-(--radius-control) bg-field px-4 py-3 font-body text-[15px] text-foreground placeholder:text-field-placeholder outline-none focus:ring-1 focus:ring-primary";
+  const onInvalid = (event: FormEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    const input = event.currentTarget;
+    setErrors((current) => ({ ...current, [input.name]: input.validationMessage }));
+  };
+  const clearError = (event: FormEvent<HTMLInputElement>) => {
+    const { name } = event.currentTarget;
+    if (errors[name]) setErrors(({ [name]: _cleared, ...rest }) => rest);
+  };
+  const error = (name: string) =>
+    errors[name] ? (
+      <span id={`touch-${name}-error`} className="home-touch-error" role="alert">
+        {errors[name]}
+      </span>
+    ) : null;
+  const described = (name: string) => (errors[name] ? { "aria-describedby": `touch-${name}-error`, "aria-invalid": true } : {});
+
   return (
-    <section className="home-touch">
-      <div className="home-touch-card grid overflow-hidden md:grid-cols-[1.1fr_1fr]">
-        <div className="p-7 md:p-10">
-          <h2 className="home-touch-title">Get in Touch</h2>
-          <p className="mt-4 max-w-md font-body text-lead text-touch-body">Have a question about our products, pricing, samples or availability? Get in touch with our team and we'll help you find the right solution for your project.</p>
+    <section className="home-touch" aria-labelledby="home-touch-title">
+      <div className="home-touch-card">
+        <div className="home-touch-content">
+          <h2 id="home-touch-title" className="home-touch-title">Get in Touch</h2>
+          <p className="home-touch-copy">Have a question about our products, pricing, samples or availability? Get in touch with our team and we'll help you find the right solution for your project.</p>
           {sent ? (
-            <p className="mt-6 text-sm text-primary">Thanks! We'll be in touch shortly.</p>
+            <p className="home-touch-sent" role="status">Thanks! We'll be in touch shortly.</p>
           ) : (
-            <form onSubmit={(e) => void onSubmit(e)} className="mt-6 grid max-w-lg grid-cols-1 gap-4 sm:grid-cols-2">
-              <input required name="Name" autoComplete="name" placeholder="Full Name" aria-label="Full Name" className={field} />
-              <input required name="Email" type="email" autoComplete="email" placeholder="Email Address" aria-label="Email Address" className={field} />
-              <input name="Phone" type="tel" autoComplete="tel" placeholder="Phone Number" aria-label="Phone Number" className={field} />
-              <select name="Category" aria-label="Category" defaultValue="" className={`${field} text-field-placeholder`}><option value="" disabled>Category</option><option>MDF Board</option><option>Sink</option><option>Rubbish Bin</option><option>Edge Tape</option><option>Complete Kitchen</option></select>
-              <textarea name="Message" placeholder="Message" aria-label="Message" rows={4} className={`${field} sm:col-span-2`} />
-              {status === "failed" && <p role="alert" className="text-sm text-destructive sm:col-span-2">We couldn't send your enquiry. Please try again, or WhatsApp us.</p>}
-              <button disabled={status === "sending"} className="w-fit rounded-(--radius-control) bg-primary px-7 py-3 font-body text-[15px] font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60">{status === "sending" ? "Sending…" : "Send Inquiry"}</button>
+            <form onSubmit={(e) => void onSubmit(e)} className="home-touch-form">
+              <div className="home-touch-field">
+                <label htmlFor="touch-name" className="sr-only">Full Name (required)</label>
+                <input id="touch-name" required name="Name" autoComplete="name" placeholder="Full Name" onInvalid={onInvalid} onInput={clearError} {...described("Name")} />
+                {error("Name")}
+              </div>
+              <div className="home-touch-field">
+                <label htmlFor="touch-email" className="sr-only">Email Address (required)</label>
+                <input id="touch-email" required name="Email" type="email" autoComplete="email" placeholder="Email Address" onInvalid={onInvalid} onInput={clearError} {...described("Email")} />
+                {error("Email")}
+              </div>
+              <div className="home-touch-field">
+                <label htmlFor="touch-phone" className="sr-only">Phone Number</label>
+                <input id="touch-phone" name="Phone" type="tel" autoComplete="tel" placeholder="Phone Number" />
+              </div>
+              <div className="home-touch-field home-touch-select">
+                <label htmlFor="touch-category" className="sr-only">Category</label>
+                <select id="touch-category" name="Category" defaultValue="" data-empty={!hasCategory || undefined} onChange={(e) => setHasCategory(e.currentTarget.value !== "")}>
+                  <option value="" disabled>Category</option>
+                  {TOUCH_CATEGORIES.map((category) => <option key={category}>{category}</option>)}
+                </select>
+                <ChevronDown aria-hidden="true" className="home-touch-chevron" />
+              </div>
+              <div className="home-touch-field home-touch-message">
+                <label htmlFor="touch-message" className="sr-only">Message</label>
+                <textarea id="touch-message" name="Message" placeholder="Message" rows={4} />
+              </div>
+              {status === "failed" && <p role="alert" className="home-touch-failed">We couldn't send your enquiry. Please try again, or WhatsApp us.</p>}
+              <button type="submit" disabled={status === "sending"} aria-busy={status === "sending"} className="home-touch-submit">{status === "sending" ? "Sending…" : "Send Inquiry"}</button>
             </form>
           )}
         </div>
-        <img src={samples} alt="Kitchen plans with wood veneer samples" loading="lazy" className="h-full min-h-60 w-full object-cover" />
+        <div className="home-touch-media">
+          <img src={samples} alt="Kitchen plans with wood veneer samples" width={608} height={787} loading="lazy" decoding="async" />
+        </div>
       </div>
     </section>
   );

@@ -10,21 +10,21 @@ import {
 export type Filterable = { material: MaterialKey; finish: FinishKey; colors: readonly ColorKey[] };
 
 export type ProductFilters = {
-  material: MaterialKey | null;
+  materials: MaterialKey[];
   finishes: FinishKey[];
   colors: ColorKey[];
 };
 
-export const EMPTY_PRODUCT_FILTERS: ProductFilters = { material: null, finishes: [], colors: [] };
+export const EMPTY_PRODUCT_FILTERS: ProductFilters = { materials: [], finishes: [], colors: [] };
 
-/** OR within Finish and within Color, AND across Material, Finish and Color. */
+/** OR within each group (Material, Finish, Color), AND across the groups. */
 export function filterProducts<T extends Filterable>(
   products: readonly T[],
   filters: ProductFilters,
 ): T[] {
   return products.filter(
     (product) =>
-      (!filters.material || product.material === filters.material) &&
+      (filters.materials.length === 0 || filters.materials.includes(product.material)) &&
       (filters.finishes.length === 0 || filters.finishes.includes(product.finish)) &&
       (filters.colors.length === 0 ||
         product.colors.some((color) => filters.colors.includes(color))),
@@ -43,7 +43,7 @@ export function facetCounts(products: readonly Filterable[], filters: ProductFil
     filterProducts(products, { ...filters, ...override }).length;
   return {
     material: Object.fromEntries(
-      MATERIAL_OPTIONS.map(({ key }) => [key, count({ material: key })]),
+      MATERIAL_OPTIONS.map(({ key }) => [key, count({ materials: [key] })]),
     ) as FacetCounts["material"],
     finish: Object.fromEntries(
       FINISH_OPTIONS.map(({ key }) => [key, count({ finishes: [key] })]),
@@ -54,21 +54,40 @@ export function facetCounts(products: readonly Filterable[], filters: ProductFil
   };
 }
 
-export const hasActiveFilters = (filters: ProductFilters) =>
-  filters.material !== null || filters.finishes.length > 0 || filters.colors.length > 0;
+export type AvailableOptions = {
+  material: Set<MaterialKey>;
+  finish: Set<FinishKey>;
+  color: Set<ColorKey>;
+};
 
-export const toggleMaterial = (filters: ProductFilters, key: MaterialKey): ProductFilters => ({
-  ...filters,
-  material: filters.material === key ? null : key,
-});
+/** The options that at least one product in this category has; the others are not shown. */
+export function availableOptions(products: readonly Filterable[]): AvailableOptions {
+  return {
+    material: new Set(products.map((product) => product.material)),
+    finish: new Set(products.map((product) => product.finish)),
+    color: new Set(products.flatMap((product) => product.colors)),
+  };
+}
+
+/** Drops selections the category has no products for, e.g. from an old or hand-edited link. */
+export function withinOptions(filters: ProductFilters, options: AvailableOptions): ProductFilters {
+  return {
+    materials: filters.materials.filter((key) => options.material.has(key)),
+    finishes: filters.finishes.filter((key) => options.finish.has(key)),
+    colors: filters.colors.filter((key) => options.color.has(key)),
+  };
+}
+
+export const hasActiveFilters = (filters: ProductFilters) =>
+  filters.materials.length > 0 || filters.finishes.length > 0 || filters.colors.length > 0;
 
 export const toggleValue = <K extends string>(values: readonly K[], key: K): K[] =>
   values.includes(key) ? values.filter((value) => value !== key) : [...values, key];
 
-// URL query string: ?material=uv-range&finish=matte,high-gloss&color=white
+// URL query string: ?material=acrylic,melamine&finish=matte,high-gloss&color=white
 
 export type CatalogSearch = {
-  material?: MaterialKey | undefined;
+  material?: string | undefined;
   finish?: string | undefined;
   color?: string | undefined;
 };
@@ -81,9 +100,8 @@ function parseList<K extends string>(value: unknown, options: readonly { key: K 
 }
 
 export function parseCatalogSearch(search: Record<string, unknown>): ProductFilters {
-  const material = MATERIAL_OPTIONS.find(({ key }) => key === search["material"])?.key ?? null;
   return {
-    material,
+    materials: parseList(search["material"], MATERIAL_OPTIONS),
     finishes: parseList(search["finish"], FINISH_OPTIONS),
     colors: parseList(search["color"], COLOR_OPTIONS),
   };
@@ -93,7 +111,9 @@ export function toCatalogSearch(filters: ProductFilters): CatalogSearch {
   const sorted = <K extends string>(values: K[], options: readonly { key: K }[]) =>
     options.map(({ key }) => key).filter((key) => values.includes(key));
   return {
-    material: filters.material ?? undefined,
+    material: filters.materials.length
+      ? sorted(filters.materials, MATERIAL_OPTIONS).join(",")
+      : undefined,
     finish: filters.finishes.length
       ? sorted(filters.finishes, FINISH_OPTIONS).join(",")
       : undefined,

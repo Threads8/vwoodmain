@@ -162,7 +162,7 @@
 .kitchen-hero,
 .about-hero { min-height: clamp(460px, 40vw, 580px); }
 
-/* Rectangle 35: full-width 21% black band behind the hero typography (1440 × 311). */
+/* Rectangle 35: full-width translucent band behind the hero typography (1440 × 311). */
 .home-hero-band {
   display: flex;
   width: 100%;
@@ -171,7 +171,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.21);
+  /* Light translucent band from the reference: it greys the boards it crosses. */
+  background: rgba(225, 225, 225, 0.27);
 }
 
 .home-materials {
@@ -318,11 +319,44 @@
 .project-gallery-description { max-width: 532.33px; margin-top: clamp(16px, 1.8vw, 26px); font-size: clamp(14px, 1.12vw, 16px); line-height: 1.62; }
 .project-gallery-photo { position: absolute; overflow: hidden; border-radius: var(--radius-card); }
 /* The gallery files have large rounded corners baked in; a slight zoom crops them so the frame's radius shows. */
-.project-gallery-photo { isolation: isolate; box-shadow: 0 1px 2px rgba(0, 0, 0, .06); transition: transform 450ms cubic-bezier(.2, .7, .2, 1), box-shadow 450ms ease; }
-.project-gallery-photo img { transform: scale(1.14); transition: transform 900ms cubic-bezier(.2, .7, .2, 1), filter 600ms ease; }
+.project-gallery-photo { isolation: isolate; box-shadow: 0 1px 2px rgba(0, 0, 0, .06); }
+.project-gallery-photo img { transform: scale(1.14); transition: transform 400ms ease; }
+/* Each photo opens the preview; hover is only a zoom-in cursor and a 4% zoom, no overlay or text. */
+.project-gallery-photo-button { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
+.project-gallery-photo-button:focus-visible { outline: 3px solid #fff; outline-offset: -6px; }
 @media (hover: hover) {
-  .project-gallery-photo:hover { z-index: 2; transform: translateY(-4px); box-shadow: 0 18px 36px -18px rgba(40, 25, 12, .55); }
-  .project-gallery-photo:hover img { transform: scale(1.22); filter: saturate(1.08) brightness(1.03); }
+  .project-gallery-photo-button:hover img { transform: scale(calc(1.14 * 1.04)); }
+}
+.project-gallery-photo-button:focus-visible img { transform: scale(calc(1.14 * 1.04)); }
+
+/* Project gallery preview (src/components/gallery/Lightbox.tsx), portalled above the header. */
+.gallery-lightbox { position: fixed; inset: 0; z-index: 1000; background: rgba(0, 0, 0, .85); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: #fff; overscroll-behavior: contain; touch-action: pan-y; }
+.gallery-lightbox-stage { position: absolute; inset: 64px 80px 56px; }
+.gallery-lightbox-slide { position: absolute; inset: 0; display: grid; place-items: center; container-type: size; }
+/* Largest size that fits the stage at the photo's own ratio: never cropped or stretched. */
+.gallery-lightbox-image { width: min(100cqw, 100cqh * var(--ratio)); height: auto; aspect-ratio: var(--ratio); border-radius: var(--radius-control); object-fit: contain; cursor: grab; user-select: none; -webkit-user-drag: none; touch-action: pan-y; transition: opacity 200ms ease; }
+.gallery-lightbox-image:active { cursor: grabbing; }
+.gallery-lightbox-image:not([data-loaded]) { opacity: 0; }
+.gallery-lightbox-spinner { position: absolute; width: 36px; height: 36px; border: 3px solid rgba(255, 255, 255, .25); border-top-color: #fff; border-radius: 999px; animation: gallery-spin 800ms linear infinite; }
+@keyframes gallery-spin { to { transform: rotate(360deg); } }
+.gallery-lightbox-button { position: absolute; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 999px; background: rgba(255, 255, 255, .12); color: #fff; cursor: pointer; transition: background 150ms ease; }
+.gallery-lightbox-button:hover { background: rgba(255, 255, 255, .24); }
+.gallery-lightbox-button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.gallery-lightbox-button svg { width: 24px; height: 24px; }
+.gallery-lightbox-close { top: 12px; right: 12px; }
+.gallery-lightbox-prev { top: 50%; left: 16px; transform: translateY(-50%); }
+.gallery-lightbox-next { top: 50%; right: 16px; transform: translateY(-50%); }
+.gallery-lightbox-counter { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); font-family: var(--font-body); font-size: 14px; font-weight: 600; letter-spacing: .08em; font-variant-numeric: tabular-nums; }
+@media (max-width: 767px) {
+  /* Arrows sit over the photo's edges so the photo can use the full width. */
+  .gallery-lightbox-stage { inset: 64px 8px 56px; }
+  .gallery-lightbox-prev { left: 8px; }
+  .gallery-lightbox-next { right: 8px; }
+  .gallery-lightbox-button { width: 44px; height: 44px; background: rgba(0, 0, 0, .45); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gallery-lightbox-spinner { animation-duration: 2s; }
+  .project-gallery-photo-button img { transition: none; }
 }
 .project-gallery-photo { animation: gallery-in 700ms cubic-bezier(.2, .7, .2, 1) backwards; animation-delay: calc(var(--i, 0) * 60ms); }
 @keyframes gallery-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
@@ -724,6 +758,29 @@ a.product-range-card:hover h3 { color: #6f4627; }
   letter-spacing: 1.2px;
 }
 .catalog-empty button { margin-top: 16px; }
+.catalog-clear-all {
+  min-height: 32px;
+  color: #6f4627;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-transform: uppercase;
+}
+.catalog-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 6px;
+  color: #83746b;
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 1px;
+  line-height: 15px;
+  text-transform: uppercase;
+}
 @media (max-width: 767px) {
   .catalog-filter-sidebar { display: none; }
   .catalog-filter-trigger { display: inline-block; }
@@ -914,17 +971,109 @@ a.product-range-card:hover h3 { color: #6f4627; }
   margin-inline: auto;
   padding: 0 var(--page-gutter) var(--section-y);
 }
+/* Split card: form 55% / photo 45%, equal heights, no gap. Spacing comes from the reference
+   (792px wide) as fractions of the form panel, so it scales with the card. */
 .home-touch-card {
-  border-radius: var(--radius-card);
+  --touch-pad-top: clamp(32px, 15.6%, 104px);
+  --touch-pad-right: clamp(24px, 16%, 104px);
+  --touch-pad-bottom: clamp(24px, 6.4%, 44px);
+  --touch-pad-left: clamp(24px, 8.3%, 56px);
+  --touch-col-gap: 16px;
+  --touch-row-gap: 14px;
+  --touch-message-gap: 16px;
+  --touch-field-h: 40px;
+  --touch-field-radius: 3px;
+  --touch-field-font: 13px;
+  display: grid;
+  grid-template-columns: 55fr 45fr;
+  overflow: hidden;
+  border-radius: var(--radius-panel);
   background: #D9D9D9;
 }
+.home-touch-content { padding: var(--touch-pad-top) var(--touch-pad-right) var(--touch-pad-bottom) var(--touch-pad-left); }
 .home-touch-title {
   color: #1A1C1C;
   font-family: var(--font-sans);
-  font-size: var(--text-h2);
+  /* About 40px at 1280px and 36px at 1024px, as in the reference. */
+  font-size: clamp(1.75rem, 1.25rem + 1.5625vw, 2.5rem);
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.1;
   letter-spacing: -0.01em;
+}
+.home-touch-copy { margin-top: 12px; color: var(--color-touch-body); font-family: var(--font-body); font-size: 13px; line-height: 1.7; }
+.home-touch-sent { margin-top: 16px; color: var(--primary); font-family: var(--font-body); font-size: 14px; }
+.home-touch-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--touch-row-gap) var(--touch-col-gap);
+  margin-top: 16px;
+  font-family: var(--font-body);
+}
+.home-touch-field { position: relative; min-width: 0; }
+.home-touch-field input,
+.home-touch-field select,
+.home-touch-field textarea {
+  display: block;
+  width: 100%;
+  height: var(--touch-field-h);
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: var(--touch-field-radius);
+  background: var(--color-field);
+  color: var(--color-foreground);
+  font: inherit;
+  font-size: var(--touch-field-font);
+  line-height: 1.4;
+  outline: none;
+  transition: border-color 150ms ease;
+}
+.home-touch-field ::placeholder { color: var(--color-field-placeholder); opacity: 1; }
+.home-touch-field :is(input, select, textarea):focus-visible { border-color: #6f4627; }
+.home-touch-field [aria-invalid="true"] { border-color: #b42318; }
+/* Category: the native arrow is replaced by a chevron inside the field; the select stays clickable
+   underneath it, and shows the placeholder colour until a category is chosen. */
+.home-touch-select select { padding-right: 36px; -webkit-appearance: none; appearance: none; cursor: pointer; }
+.home-touch-select select[data-empty] { color: var(--color-field-placeholder); }
+.home-touch-select option { color: var(--color-foreground); }
+.home-touch-chevron { position: absolute; top: 50%; right: 12px; width: 16px; height: 16px; color: var(--color-field-placeholder); transform: translateY(-50%); pointer-events: none; }
+.home-touch-message { grid-column: 1 / -1; margin-top: calc(var(--touch-message-gap) - var(--touch-row-gap)); }
+.home-touch-message textarea { height: auto; min-height: 90px; padding: 12px; resize: vertical; }
+/* Errors sit in the row gap, so showing one never moves the fields. */
+.home-touch-error { position: absolute; top: 100%; left: 0; max-width: 100%; overflow: hidden; color: #b42318; font-size: 11px; line-height: 14px; white-space: nowrap; text-overflow: ellipsis; }
+.home-touch-failed { grid-column: 1 / -1; color: var(--destructive); font-size: 13px; }
+.home-touch-submit {
+  grid-column: 1 / -1;
+  justify-self: start;
+  width: 150px;
+  height: 42px;
+  margin-top: calc(18px - var(--touch-row-gap));
+  border-radius: var(--touch-field-radius);
+  background: linear-gradient(90deg, #6f4627, #8b5e3c);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, .2);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 150ms ease, filter 150ms ease, box-shadow 150ms ease;
+}
+.home-touch-submit:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(.9); box-shadow: 0 8px 16px rgba(0, 0, 0, .22); }
+.home-touch-submit:focus-visible { outline: 2px solid #6f4627; outline-offset: 3px; }
+.home-touch-submit:disabled { cursor: progress; opacity: .7; }
+/* The photo fills its column at any card height without stretching. */
+.home-touch-media { position: relative; min-height: 240px; }
+.home-touch-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+@media (max-width: 767px) {
+  /* Stacked: photo on top (rounded top corners come from the card), single-column form below. */
+  .home-touch-card { --touch-field-h: 44px; grid-template-columns: minmax(0, 1fr); }
+  .home-touch-media { order: -1; min-height: 0; height: 220px; }
+  .home-touch-content { padding: 24px; }
+  .home-touch-form { grid-template-columns: minmax(0, 1fr); }
+  .home-touch-submit { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-touch-submit, .home-touch-field :is(input, select, textarea) { transition: none; }
 }
 
 /* Product detail pages. */
@@ -979,6 +1128,17 @@ a.product-range-card:hover h3 { color: #6f4627; }
 .product-in-use-heading { margin-top: 48px; }
 .product-in-use { display: grid; grid-template-columns: var(--gallery-columns); gap: 24px; width: 100%; max-width: var(--gallery-width); margin-top: 24px; }
 .product-in-use img { width: 100%; height: clamp(160px, 16.7vw, 241px); object-fit: cover; border-radius: var(--radius-card); }
+/* Each photo opens the shared preview (src/components/Lightbox.tsx): zoom-in cursor and a 4% zoom
+   only. The button clips the zoom to the same rounded corners; sizes are unchanged. */
+.product-in-use-thumb { display: block; min-width: 0; padding: 0; overflow: hidden; border: 0; border-radius: var(--radius-card); background: none; cursor: zoom-in; }
+.product-in-use-thumb img { display: block; transition: transform 400ms ease; }
+.product-in-use-thumb:focus-visible { outline: 2px solid #6f4627; outline-offset: 3px; }
+@media (hover: hover) {
+  .product-in-use-thumb:hover img { transform: scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .product-in-use-thumb img { transition: none; }
+}
 @media (max-width: 1100px) {
   .product-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .product-detail-aside { grid-column: 1 / -1; }
@@ -998,16 +1158,37 @@ a.product-range-card:hover h3 { color: #6f4627; }
 }
 .site-footer-inner { padding-block: var(--section-y) 24px; }
 .site-footer-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, .9fr) minmax(0, .9fr) minmax(0, 1.6fr); gap: 32px; align-items: start; }
-.site-footer-heading { margin-bottom: 12px; color: var(--footer-accent); font-size: clamp(1rem, 1.2vw, 1.0625rem); font-weight: 600; line-height: 1.4; }
+/* "Quick Links:", "Products:" and "Contact:" share one style (Figma: Inter 600, #6F4627, ~30px), so
+   the three column headings are the same size and sit on one line. */
+.site-footer-heading { margin-bottom: 12px; color: var(--footer-accent); font-size: var(--text-h2); font-weight: 600; line-height: 1.2; white-space: nowrap; }
 .site-footer-logo { display: block; width: clamp(150px, 12.5vw, 180px); height: auto; margin-left: -6px; }
 .site-footer-tagline { width: min(260px, 100%); margin-top: 12px; font-size: 14px; line-height: 20px; }
 .site-footer-links, .site-footer-contact ul { font-size: clamp(.875rem, 1vw, .9375rem); line-height: 1.75; }
 .site-footer-links a:hover { text-decoration: underline; }
+/* Footer "Quick Links:" — large brown heading over a white disc-bulleted list, all left-aligned. */
+.site-footer-quick-links { text-align: left; }
+/* The 38px link rows already add ~11px above the first link, so the heading needs less margin
+   for its first link to line up with the first row of the other columns. */
+.site-footer-quick-links .site-footer-heading { margin-bottom: 6px; }
+/* Unlayered, so Tailwind preflight's list-style: none never removes the bullets. */
+.site-footer-quick-links ul { margin: 0; padding-left: 1.5rem; list-style: disc outside; font-size: clamp(.875rem, 1vw, .9375rem); }
+.site-footer-quick-links li { padding-left: .375rem; color: #fff; }
+.site-footer-quick-links li::marker { color: #fff; }
+/* One line per link, ~38px each; the line box (not flex) keeps each bullet on the text baseline. */
+.site-footer-quick-links a { display: inline-block; color: #fff; font-weight: 400; line-height: 38px; white-space: nowrap; transition: opacity 150ms ease; }
+.site-footer-quick-links a:hover { opacity: .8; }
+/* Same active style as the header nav (semibold); links are left-aligned, so nothing moves. */
+.site-footer-quick-links a[aria-current="page"] { font-weight: 600; }
+.site-footer-quick-links a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 2px; }
+@media (max-width: 767px) {
+  /* 44px tap targets on touch screens, still on the bullet's baseline. */
+  .site-footer-quick-links a { line-height: 44px; }
+}
 .site-footer-contact ul { color: #e5e7eb; font-weight: 500; }
 .site-footer-contact li { display: grid; grid-template-columns: 20px minmax(0, 1fr); column-gap: 10px; align-items: start; }
 .site-footer-contact svg { justify-self: center; height: 1lh; }
 .site-footer-timings { margin-top: 16px; color: #e5e7eb; font-size: 14px; font-weight: 600; line-height: 1.4; letter-spacing: .1em; text-transform: uppercase; }
-.site-footer-timings span { color: var(--footer-accent); }
+.site-footer-timings span { color: var(--footer-accent); text-transform: none; }
 .site-footer-contact a:hover { text-decoration: underline; }
 .site-footer-map { position: relative; height: clamp(220px, 22vw, 300px); margin-top: clamp(28px, 3vw, 40px); overflow: hidden; border-radius: var(--radius-card); background: #8a7d6e; box-shadow: 0 10px 30px -18px rgba(0, 0, 0, .45); }
 .site-footer-map iframe { display: block; width: 100%; height: 100%; border: 0; filter: saturate(.85) contrast(1.02); }
@@ -1142,6 +1323,8 @@ a.product-range-card:hover h3 { color: #6f4627; }
 .kc-plan-frame { position: relative; aspect-ratio: 2.2 / 1; overflow: hidden; border-radius: var(--radius-control); background: #fff; }
 .kc-plan-layer { position: absolute; inset: 0; }
 .kc-plan-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; user-select: none; }
+/* Timber-drawn cabinets redrawn near-white under the finish (see planNeutral). */
+.kc-plan-neutral[data-active="false"] { visibility: hidden; }
 /* Board finish painted through the cabinet-front mask; multiply keeps the drawing's lines. */
 .kc-plan-finish {
   position: absolute;

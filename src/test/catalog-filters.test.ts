@@ -1,13 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { CATALOG_ATTRIBUTES } from "@/lib/catalog-attributes";
 import {
+  availableOptions,
   EMPTY_PRODUCT_FILTERS,
   facetCounts,
   filterProducts,
   hasActiveFilters,
   parseCatalogSearch,
   toCatalogSearch,
-  toggleMaterial,
+  toggleValue,
+  withinOptions,
   type Filterable,
 } from "@/lib/catalog-filters";
 import { BOARD_CATALOG, EDGE_TAPE_CATALOG } from "@/lib/catalog-products";
@@ -29,14 +31,16 @@ describe("filterProducts", () => {
     expect(filterProducts(ITEMS, EMPTY_PRODUCT_FILTERS)).toEqual(ITEMS);
   });
 
-  it("matches the single selected material", () => {
-    expect(ids(filterProducts(ITEMS, { ...EMPTY_PRODUCT_FILTERS, material: "melamine" }))).toEqual([
-      "c",
-      "d",
-    ]);
+  it("matches the selected material", () => {
+    expect(
+      ids(filterProducts(ITEMS, { ...EMPTY_PRODUCT_FILTERS, materials: ["melamine"] })),
+    ).toEqual(["c", "d"]);
   });
 
-  it("uses OR within finishes and within colours", () => {
+  it("uses OR within materials, finishes and colours", () => {
+    expect(
+      ids(filterProducts(ITEMS, { ...EMPTY_PRODUCT_FILTERS, materials: ["acrylic", "uv-range"] })),
+    ).toEqual(["a", "b", "e"]);
     expect(
       ids(filterProducts(ITEMS, { ...EMPTY_PRODUCT_FILTERS, finishes: ["matte", "woodgrain"] })),
     ).toEqual(["b", "c", "e"]);
@@ -55,22 +59,23 @@ describe("filterProducts", () => {
     expect(
       ids(
         filterProducts(ITEMS, {
-          material: "acrylic",
+          materials: ["acrylic"],
           finishes: ["high-gloss", "matte"],
           colors: ["black"],
         }),
       ),
     ).toEqual(["b"]);
     expect(
-      filterProducts(ITEMS, { material: "uv-range", finishes: ["woodgrain"], colors: [] }),
+      filterProducts(ITEMS, { materials: ["uv-range"], finishes: ["woodgrain"], colors: [] }),
     ).toEqual([]);
   });
 
-  it("deselects the material when the active one is clicked again", () => {
-    const selected = toggleMaterial(EMPTY_PRODUCT_FILTERS, "acrylic");
-    expect(selected.material).toBe("acrylic");
-    expect(toggleMaterial(selected, "acrylic").material).toBeNull();
-    expect(hasActiveFilters(toggleMaterial(selected, "acrylic"))).toBe(false);
+  it("deselects a material when the active one is clicked again", () => {
+    const selected = { ...EMPTY_PRODUCT_FILTERS, materials: toggleValue([], "acrylic" as const) };
+    expect(selected.materials).toEqual(["acrylic"]);
+    const cleared = { ...selected, materials: toggleValue(selected.materials, "acrylic") };
+    expect(cleared.materials).toEqual([]);
+    expect(hasActiveFilters(cleared)).toBe(false);
   });
 });
 
@@ -86,7 +91,7 @@ describe("facetCounts", () => {
   });
 
   it("counts each finish and colour option as if it were the only one in its group", () => {
-    const counts = facetCounts(ITEMS, { material: "acrylic", finishes: ["matte"], colors: [] });
+    const counts = facetCounts(ITEMS, { materials: ["acrylic"], finishes: ["matte"], colors: [] });
     expect(counts.finish).toEqual({ matte: 1, satin: 0, "high-gloss": 1, woodgrain: 0 });
     expect(counts.color).toEqual({ black: 1, white: 0, "dark-brown": 0, charcoal: 0, tan: 0 });
   });
@@ -97,7 +102,7 @@ describe("catalog URL", () => {
     expect(
       parseCatalogSearch({ material: "uv-range", finish: "matte,high-gloss", color: "white" }),
     ).toEqual({
-      material: "uv-range",
+      materials: ["uv-range"],
       finishes: ["matte", "high-gloss"],
       colors: ["white"],
     });
@@ -107,7 +112,7 @@ describe("catalog URL", () => {
     expect(
       parseCatalogSearch({ material: "wood", finish: "matte,shiny,matte", color: 42 }),
     ).toEqual({
-      material: null,
+      materials: [],
       finishes: ["matte"],
       colors: [],
     });
@@ -117,7 +122,7 @@ describe("catalog URL", () => {
 
   it("serialises in a stable order and drops empty groups", () => {
     expect(
-      toCatalogSearch({ material: null, finishes: ["woodgrain", "matte"], colors: [] }),
+      toCatalogSearch({ materials: [], finishes: ["woodgrain", "matte"], colors: [] }),
     ).toEqual({
       material: undefined,
       finish: "matte,woodgrain",
@@ -127,16 +132,39 @@ describe("catalog URL", () => {
 
   it("round-trips filters through the URL", () => {
     const filters = {
-      material: "melamine",
+      materials: ["acrylic", "melamine"],
       finishes: ["matte", "woodgrain"],
       colors: ["black", "tan"],
     } as const;
     const search = toCatalogSearch({
-      ...filters,
+      materials: [...filters.materials],
       finishes: [...filters.finishes],
       colors: [...filters.colors],
     });
     expect(parseCatalogSearch(search)).toEqual(filters);
+  });
+});
+
+describe("category options", () => {
+  it("offers only the options a category has products for", () => {
+    const options = availableOptions(ITEMS.filter((item) => item.material === "melamine"));
+    expect([...options.material]).toEqual(["melamine"]);
+    expect([...options.finish].sort()).toEqual(["high-gloss", "woodgrain"]);
+    expect(options.finish.has("satin")).toBe(false);
+  });
+
+  it("drops URL selections the category cannot match", () => {
+    const options = availableOptions(ITEMS);
+    expect(
+      withinOptions({ materials: ["acrylic-super-matt", "acrylic"], finishes: ["satin"], colors: [] }, options),
+    ).toEqual({ materials: ["acrylic"], finishes: [], colors: [] });
+  });
+
+  it("counts MDF and edge tape products only from their own category", () => {
+    expect(BOARD_CATALOG.every((product) => product.categoryId === "mdf-board")).toBe(true);
+    expect(EDGE_TAPE_CATALOG.every((product) => product.categoryId === "edge-tape")).toBe(true);
+    const total = (counts: Record<string, number>) => Object.values(counts).reduce((a, b) => a + b, 0);
+    expect(total(facetCounts(EDGE_TAPE_CATALOG, EMPTY_PRODUCT_FILTERS).material)).toBe(EDGE_TAPE_CATALOG.length);
   });
 });
 

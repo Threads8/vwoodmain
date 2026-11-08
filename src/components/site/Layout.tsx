@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { ENQUIRY_EMAIL } from "@/lib/enquiry";
+import { getLenis } from "@/lib/lenis";
 import { GlobeIcon, PhoneIcon, PinIcon } from "./FooterIcons";
 
 const ADDRESS = "40 Cryers Road, East Tāmaki, Manukau 2013";
@@ -9,6 +10,11 @@ const ADDRESS = "40 Cryers Road, East Tāmaki, Manukau 2013";
 const MAP_LINK = "https://maps.app.goo.gl/CYNdh1sUBNzwZMuz5";
 const MAP_EMBED = `https://maps.google.com/maps?q=${encodeURIComponent("40 Cryers Road, East Tamaki, Auckland 2013, New Zealand")}&z=16&output=embed`;
 
+/**
+ * Site navigation: the header links and the footer "Quick Links:" list both map over this one
+ * array, so a label or order change here updates both. Contact is not part of it: the header
+ * has its own "Request Quote" button and the footer its own Contact column.
+ */
 const NAV = [
   { to: "/", label: "Home" },
   { to: "/products", label: "Product" },
@@ -16,6 +22,10 @@ const NAV = [
   { to: "/about", label: "About" },
   { to: "/project-gallery", label: "Project Gallery" },
 ] as const;
+
+const NAV_LINK_CLASS =
+  "site-nav-link font-body text-[clamp(13px,1.15vw,16px)] leading-[1.3] text-taupe-foreground opacity-95 transition-opacity hover:opacity-100";
+const NAV_ACTIVE_OPTIONS = { exact: true, includeSearch: false } as const;
 
 export function SiteHeader({ overlay = false }: { overlay?: boolean | undefined }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -46,9 +56,9 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean | undefined 
           <Link
             key={n.label}
             to={n.to}
-            activeOptions={{ exact: true }}
+            activeOptions={NAV_ACTIVE_OPTIONS}
             activeProps={{ className: "font-semibold" }}
-            className="site-nav-link hidden shrink-0 whitespace-nowrap opacity-95 transition-opacity hover:opacity-100 lg:inline"
+            className={`${NAV_LINK_CLASS} hidden shrink-0 whitespace-nowrap lg:inline`}
           >
             {n.label}
           </Link>
@@ -76,7 +86,12 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean | undefined 
         <ul>
           {[...NAV, { to: "/contact", label: "Contact" } as const].map((n) => (
             <li key={n.label}>
-              <Link to={n.to} activeOptions={{ exact: true }} activeProps={{ "aria-current": "page" }} onClick={() => setMenuOpen(false)}>
+              <Link
+                to={n.to}
+                activeOptions={NAV_ACTIVE_OPTIONS}
+                activeProps={{ "aria-current": "page" }}
+                onClick={() => setMenuOpen(false)}
+              >
                 {n.label}
               </Link>
             </li>
@@ -111,7 +126,38 @@ export function SiteFooter() {
               <WhatsappLogo className="h-5 w-5 shrink-0" /> Whatsapp Chat
             </a>
           </div>
-          <FooterList title="Quick Links:" items={[["Home", "/"], ["About Us", "/about"], ["Products", "/products"], ["Kitchen Designs", "/kitchen-design"], ["Contact", "/contact"]]} />
+          <nav aria-label="Footer quick links" className="site-footer-quick-links">
+            <h4 className="site-footer-heading">Quick Links:</h4>
+            <ul>
+              {NAV.map((n) => (
+                <li key={n.to}>
+                  <Link
+                    to={n.to}
+                    resetScroll={true}
+                    onClick={(event) => {
+                      if (
+                        event.button === 0 &&
+                        !event.metaKey &&
+                        !event.ctrlKey &&
+                        !event.shiftKey &&
+                        !event.altKey &&
+                        window.location.pathname === n.to
+                      ) {
+                        // Through Lenis when it runs, so its own scroll position stays in step.
+                        const lenis = getLenis();
+                        if (lenis) lenis.scrollTo(0, { immediate: true });
+                        else window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+                      }
+                    }}
+                    activeOptions={NAV_ACTIVE_OPTIONS}
+                    activeProps={{ "aria-current": "page" }}
+                  >
+                    {n.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
           <FooterList title="Products:" items={[["MDF Board", "/products"], ["Sink", "/products", { category: "sink", view: "catalog" }], ["Rubbish Bin", "/products", { category: "rubbish-bin", view: "catalog" }], ["Edge Tape", "/products", { category: "edge-tape", view: "catalog" }]]} />
           <div className="site-footer-contact">
             <h4 className="site-footer-heading">Contact:</h4>

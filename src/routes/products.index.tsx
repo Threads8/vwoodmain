@@ -8,6 +8,7 @@ import { COLOR_OPTIONS, FINISH_OPTIONS, MATERIAL_OPTIONS } from "@/config/catalo
 import { PRODUCT_CATEGORIES, parseProductCategory, categoryOptionLabel } from "@/lib/product-categories";
 import { getCatalogProducts, type CatalogProduct } from "@/lib/catalog-products";
 import {
+  availableOptions,
   EMPTY_PRODUCT_FILTERS,
   facetCounts,
   filterProducts,
@@ -15,6 +16,7 @@ import {
   parseCatalogSearch,
   toCatalogSearch,
   toggleValue,
+  withinOptions,
   type CatalogSearch,
   type ProductFilters,
 } from "@/lib/catalog-filters";
@@ -207,33 +209,49 @@ const PER_PAGE = 21;
 const EDGE_TAPE_FIRST_PAGE = 12;
 const EDGE_TAPE_PER_PAGE = 13;
 
-/** Lazy image that fades in over the card's neutral background once it has loaded. */
-function CatalogImage({ className = "", ...props }: ImgHTMLAttributes<HTMLImageElement>) {
-  const [loaded, setLoaded] = useState(false);
+/**
+ * Lazy image that fades in once it has loaded. A skeleton pulses in its place only while it
+ * loads, and the product's colour swatch replaces it if the image cannot be fetched.
+ */
+function CatalogImage({
+  className = "",
+  fallback,
+  ...props
+}: ImgHTMLAttributes<HTMLImageElement> & { fallback: CSSProperties }) {
+  const [status, setStatus] = useState<"loading" | "loaded" | "failed">("loading");
+  if (status === "failed") return <div className="h-full w-full" style={fallback} />;
   return (
-    <img
-      {...props}
-      loading="lazy"
-      decoding="async"
-      // Images cached or loaded before hydration never fire onLoad.
-      ref={(img) => { if (img?.complete && img.naturalWidth > 0) setLoaded(true); }}
-      onLoad={() => setLoaded(true)}
-      data-loaded={loaded || undefined}
-      className={`catalog-card-img ${className}`}
-    />
+    <>
+      {status === "loading" && <span aria-hidden="true" className="catalog-skeleton absolute inset-0" />}
+      <img
+        {...props}
+        loading="lazy"
+        decoding="async"
+        // Images cached or loaded before hydration never fire onLoad (or onError).
+        ref={(img) => {
+          if (img?.complete) setStatus(img.naturalWidth > 0 ? "loaded" : "failed");
+        }}
+        onLoad={() => setStatus("loaded")}
+        onError={() => setStatus("failed")}
+        data-loaded={status === "loaded" || undefined}
+        className={`catalog-card-img ${className}`}
+      />
+    </>
   );
 }
 
 function ProductMedia({ product }: { product: CatalogProduct }) {
   const zoomClass = "transition-[opacity,transform] duration-500 motion-safe:group-hover:scale-[1.03]";
+  const swatch: CSSProperties = { background: product.swatch, border: product.swatchBorder };
   if (!product.image) {
-    return <div className="h-full w-full" style={{ background: product.swatch, border: product.swatchBorder }} />;
+    return <div className="h-full w-full" style={swatch} />;
   }
   if (product.categoryId === "edge-tape") {
     const { crop } = product;
     return (
       <CatalogImage
         src={product.image}
+        fallback={swatch}
         alt={`${product.name} edge tape`}
         className={`${crop ? "edge-tape-crop" : "h-full w-full object-cover"} ${zoomClass}`}
         style={crop ? ({
@@ -245,7 +263,7 @@ function ProductMedia({ product }: { product: CatalogProduct }) {
       />
     );
   }
-  return <CatalogImage src={product.image} alt={`${product.name} cabinetry`} className={`h-full w-full object-cover ${zoomClass}`} />;
+  return <CatalogImage src={product.image} fallback={swatch} alt={`${product.name} cabinetry`} className={`h-full w-full object-cover ${zoomClass}`} />;
 }
 
 function ProductCard({ product }: { product: CatalogProduct }) {
@@ -267,6 +285,10 @@ function ProductCard({ product }: { product: CatalogProduct }) {
       <h3 className="mt-5 font-sans text-h3 font-bold tracking-[-0.02em]" style={{ color: "#1A1C1C" }}>
         {product.name}
       </h3>
+      <p className="catalog-card-meta">
+        {product.code && <span>{product.code}</span>}
+        <span>{finishLabel(product.finish)}</span>
+      </p>
       <p className="mt-1.5 max-w-[320px] font-body text-[14px] leading-[1.625]" style={{ color: "#51443C" }}>
         {product.description}
       </p>
@@ -280,12 +302,23 @@ function ProductCard({ product }: { product: CatalogProduct }) {
   );
 }
 
+const finishLabel = (key: CatalogProduct["finish"]) =>
+  FINISH_OPTIONS.find((option) => option.key === key)?.label ?? key;
+
+/** Subtitle under "Explore Our Range" for each category. */
+const CATEGORY_TITLES: Record<ReturnType<typeof parseProductCategory>, string> = {
+  "mdf-board": "MDF Boards",
+  sink: "Sinks",
+  "rubbish-bin": "Rubbish Bin & Others",
+  "edge-tape": "Edge Tape",
+};
+
 const plural = (count: number) => `${count} ${count === 1 ? "product" : "products"}`;
 
 function activeFilterTags(filters: ProductFilters) {
   return [
-    ...MATERIAL_OPTIONS.filter((o) => o.key === filters.material).map((o) => ({
-      id: `material-${o.key}`, label: o.label, remove: (f: ProductFilters) => ({ ...f, material: null }),
+    ...MATERIAL_OPTIONS.filter((o) => filters.materials.includes(o.key)).map((o) => ({
+      id: `material-${o.key}`, label: o.label, remove: (f: ProductFilters) => ({ ...f, materials: toggleValue(f.materials, o.key) }),
     })),
     ...FINISH_OPTIONS.filter((o) => filters.finishes.includes(o.key)).map((o) => ({
       id: `finish-${o.key}`, label: o.label, remove: (f: ProductFilters) => ({ ...f, finishes: toggleValue(f.finishes, o.key) }),
@@ -303,10 +336,14 @@ function Products() {
   const hasFilters = category === "mdf-board" || category === "edge-tape";
   const firstPageSize = category === "edge-tape" ? EDGE_TAPE_FIRST_PAGE : PER_PAGE;
   const pageSize = category === "edge-tape" ? EDGE_TAPE_PER_PAGE : PER_PAGE;
-  const categoryName = PRODUCT_CATEGORIES.find((item) => item.id === category)!.name;
 
+  // Only options this category has products for are offered (and kept from the URL).
+  const available = useMemo(() => availableOptions(products), [products]);
   // The URL is the source of truth, so links restore filters and Back/Forward step through them.
-  const filters = useMemo(() => parseCatalogSearch(search), [search]);
+  const filters = useMemo(
+    () => withinOptions(parseCatalogSearch(search), available),
+    [search, available],
+  );
   const filterKey = JSON.stringify(toCatalogSearch(filters));
   const setFilters = (next: ProductFilters) =>
     void navigate({ search: (prev) => ({ ...prev, ...toCatalogSearch(next) }), resetScroll: false });
@@ -337,7 +374,7 @@ function Products() {
               Explore Our Range
               <br />
               <span className="text-[0.92em]" style={{ color: "rgba(26,28,28,0.78)" }}>
-                {category === "rubbish-bin" ? "Rubbish Bin & Others" : categoryName}
+                {CATEGORY_TITLES[category]}
               </span>
             </h1>
             <p
@@ -350,9 +387,19 @@ function Products() {
               className="mt-2 max-w-[640px] font-body text-[clamp(15px,1.12vw,16px)] leading-[1.65]"
               style={{ color: "#505050" }}
             >
-              Explore our curated range of quality interior products, designed for modern spaces.
-              {category === "edge-tape" ? " From versatile edge tape, discover solutions" : " From versatile MDF boards discover solutions"} that combine functionality with
-              contemporary design.
+              {category === "sink" ? (
+                "Premium stainless steel sinks designed for lasting durability, easy maintenance, and a clean, modern finish for every kitchen."
+              ) : category === "edge-tape" ? (
+                "Matching edge banding in every board finish."
+              ) : category === "rubbish-bin" ? (
+                "Smooth, soft-close pull-out waste bins designed for effortless organisation and a clean, clutter-free kitchen."
+              ) : (
+                <>
+                  Explore our curated range of quality interior products, designed for modern spaces.
+                  From versatile MDF boards discover solutions that combine functionality with
+                  contemporary design.
+                </>
+              )}
             </p>          </div>
           <select aria-label="Category" value={category} onChange={(event) => void navigate({ search: { category: parseProductCategory(event.target.value), view: "catalog" }, resetScroll: false })} className="catalog-category mt-3">
             {PRODUCT_CATEGORIES.map((item) => <option key={item.id} value={item.id}>{categoryOptionLabel(item)}</option>)}
@@ -362,7 +409,7 @@ function Products() {
 
       {category === "sink" ? <SinkRange /> : category === "rubbish-bin" ? <BinRange /> : <section className="product-catalog-layout">
         <aside hidden={!hasFilters} className="catalog-filter-sidebar" aria-label="Product filters">
-          <FilterPanel filters={filters} counts={counts} onChange={setFilters} idPrefix="sidebar-filter" />
+          <FilterPanel filters={filters} counts={counts} available={available} onChange={setFilters} idPrefix="sidebar-filter" />
         </aside>
 
         <div className={!hasFilters ? "col-span-full" : undefined}>
@@ -375,7 +422,7 @@ function Products() {
                 <SheetContent side="left" className="catalog-filter-drawer">
                   <SheetTitle className="sr-only">Product filters</SheetTitle>
                   <SheetDescription className="sr-only">Results update as you choose filters.</SheetDescription>
-                  <FilterPanel filters={filters} counts={counts} onChange={setFilters} idPrefix="drawer-filter">
+                  <FilterPanel filters={filters} counts={counts} available={available} onChange={setFilters} idPrefix="drawer-filter">
                     <SheetClose className="catalog-filter-apply">
                       Show {filtered.length} {filtered.length === 1 ? "result" : "results"}
                     </SheetClose>
@@ -397,6 +444,11 @@ function Products() {
                   ))}
                 </ul>
               )}
+              {active && (
+                <button type="button" className="catalog-clear-all" onClick={() => setFilters(EMPTY_PRODUCT_FILTERS)}>
+                  Clear all
+                </button>
+              )}
             </div>
           )}
 
@@ -408,8 +460,8 @@ function Products() {
               <p role="status" className="py-16 text-center">No products available in this category yet.</p>
             ) : (
               <div className="catalog-empty">
-                <p>No products match these filters</p>
-                <button type="button" onClick={() => setFilters(EMPTY_PRODUCT_FILTERS)}>Clear Filters</button>
+                <p role="status">No products match your filters</p>
+                <button type="button" onClick={() => setFilters(EMPTY_PRODUCT_FILTERS)}>Clear filters</button>
               </div>
             )
           )}

@@ -1,6 +1,12 @@
 import { useEffect, useId, useState } from "react";
 import { cabinetStyleLabel, layoutLabel } from "@/config/kitchenOptions";
-import { finishBackground, finishImages, planMask, PREVIEW_FINISHES } from "@/config/planFinishes";
+import {
+  finishBackground,
+  finishImages,
+  planMask,
+  planNeutral,
+  PREVIEW_FINISHES,
+} from "@/config/planFinishes";
 import { getPlanImage, isDefaultPlan } from "@/config/planImages";
 import { PRODUCTS, type CatalogItem } from "@/config/products";
 import { useKitchenStore } from "@/stores/kitchenStore";
@@ -21,9 +27,21 @@ export function PlanLayer({
   className?: string;
 }) {
   const mask = `url("${planMask(src)}")`;
+  const neutral = planNeutral(src);
   return (
     <div className={`kc-plan-layer ${className}`}>
       <img src={src} alt={alt} className="kc-plan-image" draggable={false} />
+      {/* Always mounted and only hidden, so switching swatches never waits on this image. */}
+      {neutral && (
+        <img
+          src={neutral}
+          alt=""
+          aria-hidden="true"
+          className="kc-plan-image kc-plan-neutral"
+          data-active={finish ? "true" : "false"}
+          draggable={false}
+        />
+      )}
       {/* Not keyed by finish: remounting it flashed the plain white plan on every swatch change. */}
       {finish && (
         <span

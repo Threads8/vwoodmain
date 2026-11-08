@@ -11,6 +11,22 @@ import { PRODUCTS, type CatalogItem } from "./products";
  */
 export const planMask = (src: string) => src.replace("/kitchen-plans/", "/kitchen-plans/masks/");
 
+/**
+ * Plans whose drawing has cabinets in timber rather than white (overheads on 56 and 58; the
+ * overhead above the hob and the island front on 67). Multiplying a finish over wood grain would
+ * only tint the wood, so these plans also have a neutral overlay in /kitchen-plans/neutral that
+ * redraws just those panels in near-white, keeping their door gaps and shading. It sits under the
+ * finish while one is shown, so the timber panels recolour exactly like the white doors.
+ */
+const TIMBER_PLANS = new Set([
+  "/kitchen-plans/image-56.png",
+  "/kitchen-plans/image-58.png",
+  "/kitchen-plans/image-67.png",
+]);
+
+export const planNeutral = (src: string): string | null =>
+  TIMBER_PLANS.has(src) ? src.replace("/kitchen-plans/", "/kitchen-plans/neutral/") : null;
+
 /** Shown before any board is chosen, so the preview can be tried straight away. */
 const TRY_FIRST = [
   "prime-oak",

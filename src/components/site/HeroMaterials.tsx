@@ -3,17 +3,22 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { BOARDS, IMG } from "@/lib/site-data";
+import { BOARDS } from "@/lib/site-data";
 
 // Board surface bounds in the original 1670 × 942 photograph, plus each label's
 // anchor (left edge — or right edge with labelEnd — and vertical centre) in the same space. Labels follow the
 // image's centered object-cover geometry, including mobile cropping.
 const MATERIALS = [
-  { slug: "washed-oakwood", label: "Washed Oakwood", x: 190, y: 240, width: 234, height: 516, labelX: 237, labelY: 452, labelEnd: true },
+  // Top edge lowered in the photo to Classic Walnut's line (scripts/hero-board-edit.py). Chip placed
+  // like Walnut's: 12 photo px inside the board's left edge, centred 86 px below its top.
+  { slug: "washed-oakwood", label: "Washed Oakwood", x: 190, y: 281, width: 234, height: 475, labelX: 202, labelY: 367 },
   { slug: "classic-walnut", label: "Classic Walnut", x: 543, y: 280, width: 233, height: 463, labelX: 555, labelY: 366 },
   { slug: "maple-wood-natural", label: "Maple Wood Natural", x: 881, y: 286, width: 237, height: 457, labelX: 930, labelY: 452 },
   { slug: "prime-oak", label: "Prime Oak", x: 1229, y: 252, width: 227, height: 504, labelX: 1278, labelY: 366 },
 ] as const;
+
+// The supplied hero photo with the Washed Oakwood board shortened to match the others.
+const HERO_PHOTO = "/images/home-hero.webp";
 
 const LABEL_WIDTH = 148;
 const EDGE = 6;
@@ -106,7 +111,7 @@ export function HeroMaterials() {
 
   return (
     <div ref={frame} className="home-materials">
-      <img src={IMG.homeHero} alt="Wood MDF boards on display in a showroom" className="absolute inset-0 h-full w-full object-cover" />
+      <img src={HERO_PHOTO} alt="Wood MDF boards on display in a showroom" width={1670} height={942} className="absolute inset-0 h-full w-full object-cover" />
       {size.width > 0 && MATERIALS.map((material) => {
         const boardLeft = offsetX + material.x * scale;
         const boardRight = boardLeft + material.width * scale;

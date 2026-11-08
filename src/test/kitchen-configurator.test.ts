@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
 import { CABINET_STYLES, LAYOUTS } from "@/config/kitchenOptions";
 import { findIncompleteStep } from "@/config/kitchenSteps";
+import { planMask, planNeutral } from "@/config/planFinishes";
 import { getPlanImage, isDefaultPlan, PLAN_DEFAULTS, PLAN_IMAGE_FILES } from "@/config/planImages";
 import { EMPTY_FILTERS, filterCatalog, PRODUCTS } from "@/config/products";
 import { sortTapesByBoards, TAPES } from "@/config/tapes";
@@ -91,6 +92,16 @@ describe("route guard order", () => {
 describe("plan images", () => {
   it("has an existing file for every plan image", () => {
     for (const file of PLAN_IMAGE_FILES) expect(existsSync(publicFile(file)), file).toBe(true);
+  });
+
+  it("has a mask for every plan, and a neutral overlay for every plan with timber cabinets", () => {
+    for (const file of PLAN_IMAGE_FILES) {
+      expect(existsSync(publicFile(planMask(file))), planMask(file)).toBe(true);
+      const neutral = planNeutral(file);
+      if (neutral) expect(existsSync(publicFile(neutral)), neutral).toBe(true);
+    }
+    // The island plan's timber overhead and island front must recolour with the finish.
+    expect(planNeutral(PLAN_DEFAULTS.island)).not.toBeNull();
   });
 
   it("resolves every layout and style combination to an existing file", () => {

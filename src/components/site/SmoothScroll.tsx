@@ -1,5 +1,6 @@
 import Lenis from "lenis";
 import { useEffect } from "react";
+import { getLenis, setActiveLenis } from "@/lib/lenis";
 
 export function SmoothScroll() {
   useEffect(() => {
@@ -7,6 +8,7 @@ export function SmoothScroll() {
     if (reducedMotion.matches) return;
 
     const lenis = new Lenis();
+    setActiveLenis(lenis);
     let frameId = 0;
 
     const raf = (time: number) => {
@@ -18,6 +20,7 @@ export function SmoothScroll() {
 
     return () => {
       window.cancelAnimationFrame(frameId);
+      if (getLenis() === lenis) setActiveLenis(null);
       lenis.destroy();
     };
   }, []);

@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useState, type CSSProperties } from "react";
+import { useRef, useState, type CSSProperties } from "react";
 import { ArrowRight, Plus, Minus } from "lucide-react";
+import { Lightbox } from "@/components/Lightbox";
 import { Page } from "@/components/site/Layout";
 import { PRODUCT_DETAILS } from "@/lib/product-details";
 import { findProduct } from "@/lib/product-categories";
@@ -11,6 +12,15 @@ import type { EdgeTapeDetailProduct } from "@/lib/edge-tape-products";
 import featureIcons from "@/assets/products/product-feature-icons.png";
 
 const CATEGORY_LABELS = { "mdf-board": "MDF Board", sink: "Sink", "rubbish-bin": "Rubbish Bin", "edge-tape": "Edge Tape" } as const;
+
+/**
+ * Allow-list of product `categoryId`s that show the dark "Premium Surface Finish" card. Every
+ * other category (sinks, rubbish bins and the drawer runner, which is filed under rubbish-bin,
+ * plus any added later) leaves it out of the page entirely.
+ */
+const SURFACE_FINISH_CATEGORIES: readonly string[] = ["mdf-board", "edge-tape"];
+const showsSurfaceFinish = (categoryId: string) =>
+  SURFACE_FINISH_CATEGORIES.includes(categoryId.trim().toLowerCase());
 
 export const Route = createFileRoute("/products/$slug")({
   loader: ({ params }) => {
@@ -44,6 +54,23 @@ function ProductDetailContent({ board }: { board: Board | SinkProduct | BinDetai
   const [qty, setQty] = useState(2);
   const [size, setSize] = useState(sizes[0]);
   const images = detail?.images ?? [IMG.barKitchen, IMG.brightKitchen, IMG.woodKitchen];
+  // "Product in Use": the thumbnails and the preview both read this one list, so the preview only
+  // steps through the current product's photos.
+  const inUsePhotos = images.map((src, i) => ({
+    src,
+    alt: `${board.name} ${board.categoryId === "mdf-board" ? "cabinetry " : ""}installation ${i + 1}`,
+  }));
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const thumbs = useRef<(HTMLButtonElement | null)[]>([]);
+  const openedFrom = useRef<HTMLButtonElement | null>(null);
+  const openPreview = (i: number) => {
+    openedFrom.current = thumbs.current[i] ?? null;
+    setPreviewIndex(i);
+  };
+  const closePreview = () => {
+    setPreviewIndex(null);
+    openedFrom.current?.focus({ preventScroll: true });
+  };
   const quoteSearch = { product: board.slug, quantity: qty, size };
 
   return (
@@ -63,6 +90,7 @@ function ProductDetailContent({ board }: { board: Board | SinkProduct | BinDetai
             <h3 className="product-selection-label">Current Selections</h3>
             <dl className="product-specifications">
               {board.code && <div><dt>CODE</dt><dd>{board.code}</dd></div>}
+              {board.categoryId === "edge-tape" && <div><dt>Roll length</dt><dd>100 meters/roll</dd></div>}
               {(board.categoryId === "mdf-board" || board.categoryId === "edge-tape") && <>
               <div><dt>Thickness</dt><dd>18MM</dd></div>
               <div><dt>Finish</dt><dd>{board.sides}</dd></div>
@@ -88,22 +116,43 @@ function ProductDetailContent({ board }: { board: Board | SinkProduct | BinDetai
           <aside className="product-detail-aside">
             <Link to="/contact" search={quoteSearch} className="product-detail-action product-detail-action-primary">Proceed to Step 3 <ArrowRight size={12} aria-hidden="true" /></Link>
             <Link to="/contact" search={quoteSearch} className="product-detail-action">Request a Quote</Link>
-            <div className="product-surface-panel">
-              <h3 className="product-surface-title text-h3">Premium Surface Finish</h3>
-              <p className="product-surface-description">{board.surfaceDesc}</p>
-              <ul className="product-surface-features">
-                {board.features.map(feature => <li key={feature}>{feature}</li>)}
-              </ul>
-            </div>
+            {showsSurfaceFinish(board.categoryId) && (
+              <div className="product-surface-panel">
+                <h3 className="product-surface-title text-h3">Premium Surface Finish</h3>
+                <p className="product-surface-description">{board.surfaceDesc}</p>
+                <ul className="product-surface-features">
+                  {board.features.map(feature => <li key={feature}>{feature}</li>)}
+                </ul>
+              </div>
+            )}
           </aside>
         </div>
         {images.length > 0 && <>
         <div className="product-detail-section-heading product-in-use-heading"><h2 className="text-h3">Product in Use</h2></div>
         <div className="product-in-use" style={{ "--gallery-columns": (detail?.imageWidths ?? [207, 343, 207]).map(width => `${width}fr`).join(" "), "--gallery-width": `${(detail?.imageWidths ?? [207, 343, 207]).reduce((total, width) => total + width, 0) + Math.max(0, images.length - 1) * 27}px` } as CSSProperties}>
-          {images.map((src, i) => <img key={src} src={src} alt={`${board.name} ${board.categoryId === "mdf-board" ? "cabinetry " : ""}installation ${i + 1}`} loading="lazy" />)}
+          {inUsePhotos.map((photo, i) => (
+            <button
+              key={photo.src}
+              ref={(button) => { thumbs.current[i] = button; }}
+              type="button"
+              aria-haspopup="dialog"
+              aria-label={`View larger: ${photo.alt}`}
+              className="product-in-use-thumb"
+              onClick={() => openPreview(i)}
+            >
+              <img src={photo.src} alt={photo.alt} loading="lazy" />
+            </button>
+          ))}
         </div>
         </>}
       </section>
+      <Lightbox
+        photos={inUsePhotos}
+        index={previewIndex}
+        onIndexChange={setPreviewIndex}
+        onClose={closePreview}
+        label="Product in use image preview"
+      />
     </Page>
   );
 }
