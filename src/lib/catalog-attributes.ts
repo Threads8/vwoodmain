@@ -83,13 +83,6 @@ export const CATALOG_ATTRIBUTES: Record<string, CatalogAttributes> = {
     cardSwatch: { background: "#2B2A28" }, // Figma 1:763
     needsUniqueCopy: true,
   },
-  "pure-white-matt": {
-    material: "acrylic-super-matt",
-    colors: ["white"],
-    textureCount: 1,
-    description: TIMBER,
-    needsUniqueCopy: true,
-  },
   "classic-walnut": {
     material: "melamine",
     colors: ["dark-brown"],

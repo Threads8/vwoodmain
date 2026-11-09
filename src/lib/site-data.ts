@@ -58,7 +58,6 @@ const raw: [string, string, string][] = [
   ["Musket Brown", "Woodgrain", wood("#1f1b18", "#2e2925")],
   ["Sand Dune", "Woodgrain", wood("#77695c", "#8a7c6e")],
   ["Prime Oak", "Woodgrain", wood("#d6ccbc", "#e3dacc")],
-  ["Snow White Matt", "Matte", "#FCFBF7"],
   ["Moss Grey Wood", "Woodgrain", "#77786d"],
   ["Rural Oak", "Woodgrain", wood("#5e3a25", "#70482f")],
   ["Aged Ash", "Woodgrain", wood("#d9b27c", "#e3c08e")],
