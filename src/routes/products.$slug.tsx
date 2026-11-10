@@ -4,6 +4,7 @@ import { ArrowRight, Plus, Minus } from "lucide-react";
 import { Lightbox } from "@/components/Lightbox";
 import { Page } from "@/components/site/Layout";
 import { PRODUCT_DETAILS } from "@/lib/product-details";
+import { EDGE_TAPE_CATALOG } from "@/lib/catalog-products";
 import { findProduct } from "@/lib/product-categories";
 import { IMG, type Board } from "@/lib/site-data";
 import type { SinkProduct } from "@/lib/sink-products";
@@ -15,10 +16,9 @@ const CATEGORY_LABELS = { "mdf-board": "MDF Board", sink: "Sink", "rubbish-bin":
 
 /**
  * Allow-list of product `categoryId`s that show the dark "Premium Surface Finish" card. Every
- * other category (sinks, rubbish bins and the drawer runner, which is filed under rubbish-bin,
- * plus any added later) leaves it out of the page entirely.
+ * other category (edge tape, sinks, rubbish bins and any added later) leaves it out of the page entirely.
  */
-const SURFACE_FINISH_CATEGORIES: readonly string[] = ["mdf-board", "edge-tape"];
+const SURFACE_FINISH_CATEGORIES: readonly string[] = ["mdf-board"];
 const showsSurfaceFinish = (categoryId: string) =>
   SURFACE_FINISH_CATEGORIES.includes(categoryId.trim().toLowerCase());
 
@@ -69,6 +69,9 @@ function Detail() {
 
 function ProductDetailContent({ board }: { board: Board | SinkProduct | BinDetailProduct | EdgeTapeDetailProduct }) {
   const detail = PRODUCT_DETAILS[board.slug];
+  const tape = board.categoryId === "edge-tape" ? EDGE_TAPE_CATALOG.find(product => product.slug === board.slug) : undefined;
+  const hero = tape ? tape.image : detail?.hero;
+  const crop = tape?.crop;
   // Only boards fall back to the standard sheet sizes; other products show just what their record gives.
   const isSheet = board.categoryId === "mdf-board" || board.categoryId === "edge-tape";
   const sizes = detail?.sizes ?? (isSheet ? ["2440x1220", "2800x1220"] : []);
@@ -102,8 +105,15 @@ function ProductDetailContent({ board }: { board: Board | SinkProduct | BinDetai
           <h2 className="text-h3">Select Style Profile</h2>
         </div>
         <div className="product-detail-grid">
-          <div className="product-detail-swatch" style={{ background: detail?.color ?? board.swatch }}>
-            {detail?.hero && <img src={detail.hero} alt={board.categoryId === "mdf-board" ? `${board.name} surface sample` : board.categoryId === "edge-tape" ? `${board.name} edge tape sample` : board.name} />}
+          <div className={`product-detail-swatch${tape ? " product-detail-swatch-edge-tape" : ""}`} style={{ background: tape?.swatch ?? detail?.color ?? board.swatch, border: tape?.swatchBorder }}>
+            {hero && <img src={hero} alt={board.categoryId === "mdf-board" ? `${board.name} surface sample` : board.categoryId === "edge-tape" ? `${board.name} edge tape sample` : board.name} style={crop ? {
+              position: "absolute",
+              width: `${(crop.width / 277) * 100}%`,
+              height: `${(crop.height / 347) * 100}%`,
+              left: `${(crop.x / 277) * 100}%`,
+              top: `${(crop.y / 347) * 100}%`,
+              maxWidth: "none",
+            } : undefined} />}
           </div>
           <div className="product-detail-selection">
             <h2 className="product-detail-name text-h2">{board.name}</h2>
@@ -112,7 +122,7 @@ function ProductDetailContent({ board }: { board: Board | SinkProduct | BinDetai
             <dl className="product-specifications">
               {board.code && <div><dt>CODE</dt><dd>{board.code}</dd></div>}
               {board.categoryId === "edge-tape" && <div><dt>Roll length</dt><dd>100 meters/roll</dd></div>}
-              {(board.categoryId === "mdf-board" || board.categoryId === "edge-tape") && <>
+              {board.categoryId === "mdf-board" && <>
               <div><dt>Thickness</dt><dd>18MM</dd></div>
               <div><dt>Finish</dt><dd>{board.sides}</dd></div>
               </>}
@@ -135,7 +145,8 @@ function ProductDetailContent({ board }: { board: Board | SinkProduct | BinDetai
               ))}
               {detail?.sizeNote && <p className="product-size-note">{detail.sizeNote}</p>}
             </fieldset>}
-            {detail?.showFeatureIcons !== false && <img src={detail?.icons ?? featureIcons} alt={detail?.iconsAlt ?? "Silk Touch, Long Durability, Anti Fingerprint, Color Stability, Eco-friendly"} loading="lazy" className="product-feature-icons" />}
+            {/* Edge tape pages show no feature icon strip. */}
+            {board.categoryId !== "edge-tape" && detail?.showFeatureIcons !== false && <img src={detail?.icons ?? featureIcons} alt={detail?.iconsAlt ?? "Silk Touch, Long Durability, Anti Fingerprint, Color Stability, Eco-friendly"} loading="lazy" className="product-feature-icons" />}
           </div>
           <aside className="product-detail-aside">
             <Link to="/contact" search={quoteSearch} className="product-detail-action product-detail-action-primary">Proceed to Step 3 <ArrowRight size={12} aria-hidden="true" /></Link>

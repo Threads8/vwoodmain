@@ -17,7 +17,7 @@ export type ProductCategory = typeof PRODUCT_CATEGORIES[number]["id"];
  * board-finish copy from the Figma export, so it is not rendered on their cards. The data stays:
  * detail pages still read it.
  */
-export const HIDE_DESCRIPTION_CATEGORIES: readonly ProductCategory[] = ["sink"];
+export const HIDE_DESCRIPTION_CATEGORIES: readonly ProductCategory[] = ["sink", "edge-tape"];
 
 /** Compares on the normalized slug, so "Edge Tape", " EDGE-TAPE " and "edge_tape" all match. */
 export const showsCardDescription = (categoryId: string) =>

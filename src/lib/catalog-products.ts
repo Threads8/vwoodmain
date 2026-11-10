@@ -5,7 +5,7 @@ import {
   type FinishKey,
   type MaterialKey,
 } from "@/config/catalogFilters";
-import { CATALOG_ATTRIBUTES } from "./catalog-attributes";
+import { CARD_TAGLINES, CATALOG_ATTRIBUTES } from "./catalog-attributes";
 import { CARCASS_EDGE_TAPES, EDGE_TAPE_PRODUCTS, type EdgeTapeCrop } from "./edge-tape-products";
 import { PRODUCT_DETAILS } from "./product-details";
 import { PRODUCT_IMAGES } from "./product-images";
@@ -37,7 +37,6 @@ export type CatalogProduct = {
   /** CSS background shown when a product has no image. */
   swatch: string;
   swatchBorder?: string;
-  needsUniqueCopy: boolean;
 };
 
 function finishKey(label: string): FinishKey {
@@ -57,16 +56,15 @@ function attributesFor(board: Board) {
   return attributes;
 }
 
-/**
- * Boards kept for other features (home hero, edge tape, kitchen finishes) but not part of the
- * supplied 25-product MDF board range, so they are left out of the board catalog grid.
- */
-const NOT_IN_BOARD_CATALOG = new Set(["classic-walnut"]);
+/** Boards kept for other features but left out of the MDF board catalog grid. */
+const NOT_IN_BOARD_CATALOG = new Set(["ultra-high-gloss-iron-ore"]);
 
 export const BOARD_CATALOG: CatalogProduct[] = BOARDS.filter(
   (board) => !NOT_IN_BOARD_CATALOG.has(board.slug),
 ).map((board) => {
-  const { needsUniqueCopy, description, cardSwatch, ...attributes } = attributesFor(board);
+  const { cardSwatch, ...attributes } = attributesFor(board);
+  const tagline = CARD_TAGLINES[board.slug];
+  if (!tagline) throw new Error(`Missing card tagline for "${board.slug}" in src/lib/catalog-attributes.ts`);
   const detail = PRODUCT_DETAILS[board.slug];
   const images = detail?.images ?? [];
   // Card image: the supplied cabinetry shot, else the detail page sample, else an in-use photo.
@@ -78,7 +76,7 @@ export const BOARD_CATALOG: CatalogProduct[] = BOARDS.filter(
     categoryId: "mdf-board",
     name: board.name,
     code: board.code,
-    description: description ?? board.desc,
+    description: tagline,
     finish: finishKey(board.finish),
     hasDetailPage: true,
     ...attributes,
@@ -86,11 +84,10 @@ export const BOARD_CATALOG: CatalogProduct[] = BOARDS.filter(
     images,
     swatch: cardSwatch?.background ?? board.swatch,
     ...(cardSwatch?.border ? { swatchBorder: cardSwatch.border } : {}),
-    needsUniqueCopy: needsUniqueCopy ?? false,
   };
 });
 
-export const EDGE_TAPE_CATALOG: CatalogProduct[] = EDGE_TAPE_PRODUCTS.flatMap((tape): CatalogProduct[] => {
+const matchingBoardEdgeTapes: CatalogProduct[] = EDGE_TAPE_PRODUCTS.flatMap((tape): CatalogProduct[] => {
   const board = BOARDS.find((item) => item.name === tape.name)!;
   const { material, colors, textureCount } = attributesFor(board);
   // Only tapes with a supplied detail frame have a tape code; the board's code is not reused.
@@ -111,10 +108,11 @@ export const EDGE_TAPE_CATALOG: CatalogProduct[] = EDGE_TAPE_PRODUCTS.flatMap((t
     images: tape.image ? [tape.image] : [],
     ...(tape.crop ? { crop: tape.crop } : {}),
     swatch: tape.swatch,
-    needsUniqueCopy: false,
   }];
-}).concat(
-  CARCASS_EDGE_TAPES.map((tape): CatalogProduct => ({
+});
+
+// Keep White Satin and White Gloss on the first page of the edge tape category.
+export const EDGE_TAPE_CATALOG: CatalogProduct[] = CARCASS_EDGE_TAPES.map((tape): CatalogProduct => ({
     id: tape.slug,
     slug: tape.slug,
     categoryId: tape.categoryId,
@@ -122,15 +120,14 @@ export const EDGE_TAPE_CATALOG: CatalogProduct[] = EDGE_TAPE_PRODUCTS.flatMap((t
     description: "",
     finish: finishKey(tape.finish),
     size: tape.size,
-    hasDetailPage: false,
+    hasDetailPage: true,
     colors: tape.colors,
     textureCount: 1,
-    images: [],
+    image: tape.image,
+    images: [tape.image],
     swatch: WHITE_SWATCH,
     swatchBorder: "1px solid rgba(131,116,107,0.35)",
-    needsUniqueCopy: false,
-  })),
-);
+  })).concat(matchingBoardEdgeTapes);
 
 export const getCatalogProducts = (category: "mdf-board" | "edge-tape") =>
   category === "edge-tape" ? EDGE_TAPE_CATALOG : BOARD_CATALOG;

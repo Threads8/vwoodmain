@@ -16,7 +16,7 @@ export const PRODUCT_IMAGES: Record<string, string> = {
   "olive-super-matt":
     "https://api.builder.io/api/v1/image/assets/TEMP/c33d5bc040013fb7938ecfd28c58a1d85afd6217?width=555",
   "musket-brown":
-    "https://api.builder.io/api/v1/image/assets/TEMP/1b43261c9a368a5bacbbcbcc38bc69f2a87efd6a?width=555",
+    "https://api.builder.io/api/v1/image/assets/TEMP/8a157a50bfe13e1822c8d889914dd09fc46c75af?width=1094",
   "oak-wood-natural":
     "https://api.builder.io/api/v1/image/assets/TEMP/88be51389f791d8068318ef5213c84a669fe29a9?width=555",
   "maple-shadow":
@@ -36,9 +36,9 @@ export const PRODUCT_IMAGES: Record<string, string> = {
   "arctic-matt":
     "https://api.builder.io/api/v1/image/assets/TEMP/31bc97eab9eb72afa9d9a2dce409048e20259bd5?width=555",
   "classic-walnut":
-    "https://api.builder.io/api/v1/image/assets/TEMP/45407cc05cc88cc5c91f99fcfcaa7a5de937443f?width=555",
+    "https://api.builder.io/api/v1/image/assets/TEMP/e1e6d6ebc4f9544cacd399fa3435070cb103a954?width=1082",
   "rural-oak":
-    "https://api.builder.io/api/v1/image/assets/TEMP/50bc8216ec6c46bb05e523666386b4e92e299a8f?width=1084",
+    "https://api.builder.io/api/v1/image/assets/TEMP/5f84b93d6cb387c3c727834cfac11aa45461979a?width=1084",
   "aged-ash":
     "https://api.builder.io/api/v1/image/assets/TEMP/787a57bdebe8f28955ac757ea2dcac3f06126ef5?width=1082",
 };

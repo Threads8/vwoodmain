@@ -297,7 +297,7 @@ function ProductCard({ product }: { product: CatalogProduct }) {
         <span>{finishLabel(product.finish)}</span>
       </p>
       {showDescription && (
-        <p className="mt-1.5 max-w-[320px] font-body text-[14px] leading-[1.625]" style={{ color: "#51443C" }}>
+        <p className={`mt-1.5 max-w-[320px] font-body text-[14px] leading-[1.625]${product.categoryId === "mdf-board" ? " italic" : ""}`} style={{ color: "#51443C" }}>
           {product.description}
         </p>
       )}
@@ -339,7 +339,7 @@ const finishLabel = (key: CatalogProduct["finish"]) =>
 const CATEGORY_TITLES: Record<ReturnType<typeof parseProductCategory>, string> = {
   "mdf-board": "MDF Boards",
   sink: "Sinks",
-  "rubbish-bin": "Rubbish Bin & Others",
+  "rubbish-bin": "Rubbish Bin",
   "edge-tape": "Edge Tape",
 };
 

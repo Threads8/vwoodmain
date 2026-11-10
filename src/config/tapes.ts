@@ -16,7 +16,7 @@ export const TAPES: TapeItem[] = EDGE_TAPE_PRODUCTS.flatMap((tape) => {
       id: `${board.slug}-tape`,
       boardId: board.slug,
       name: tape.name,
-      code: PRODUCT_DETAILS[`${board.slug}-edge-tape`]?.code ?? board.code,
+      code: PRODUCT_DETAILS[`${board.slug}-edge-tape`]?.code || board.code,
       material: materialFor(tape.name, tape.finish),
       finish: tape.finish,
       colour: colourFor(tape.name),

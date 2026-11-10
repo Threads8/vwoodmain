@@ -3,7 +3,7 @@ import { Menu, X } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { ENQUIRY_EMAIL } from "@/lib/enquiry";
 import { getLenis } from "@/lib/lenis";
-import { GlobeIcon, PhoneIcon, PinIcon } from "./FooterIcons";
+import { MailIcon, PhoneIcon, PinIcon } from "./FooterIcons";
 
 const ADDRESS = "40 Cryers Road, East Tāmaki, Manukau 2013";
 // The shared Google Maps pin, opened for directions; the embed is centred on the same address.
@@ -18,7 +18,7 @@ const MAP_EMBED = `https://maps.google.com/maps?q=${encodeURIComponent("40 Cryer
  */
 const NAV = [
   { to: "/", label: "Home" },
-  { to: "/products", label: "Product" },
+  { to: "/products", label: "Products" },
   { to: "/kitchen-design", label: "Kitchen Design" },
   { to: "/about", label: "About", headerLabel: "About Us" },
   { to: "/project-gallery", label: "Project Gallery" },
@@ -165,10 +165,10 @@ export function SiteFooter() {
             <ul>
               <li><PinIcon /><a href={MAP_LINK} target="_blank" rel="noopener noreferrer">{ADDRESS}</a></li>
               <li><PhoneIcon /><a href="tel:+64211918843">+64 21 191 8843</a></li>
-              <li><GlobeIcon /><a href={`mailto:${ENQUIRY_EMAIL}`}>{ENQUIRY_EMAIL}</a></li>
+              <li><MailIcon /><a href={`mailto:${ENQUIRY_EMAIL}`}>{ENQUIRY_EMAIL}</a></li>
             </ul>
             <p className="site-footer-timings">
-              <span>Timings:</span> 9 am to 5 pm
+              <span>Timings:</span> 8:30 am to 5:50 pm
             </p>
           </div>
         </div>

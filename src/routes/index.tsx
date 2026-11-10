@@ -5,7 +5,6 @@ import { Page } from "@/components/site/Layout";
 import { HeroMaterials } from "@/components/site/HeroMaterials";
 import { formFields, sendEnquiry } from "@/lib/enquiry";
 import { IMG } from "@/lib/site-data";
-import oliveSuperMatt from "@/assets/featured/olive-super-matt.jpg";
 import ravenBlackMatt from "@/assets/featured/raven-black-matt.jpg";
 import acrylicCollection from "@/assets/collections/acrylic-finish.jpg";
 import woodCollection from "@/assets/collections/wood-finish.jpg";
@@ -14,8 +13,6 @@ import inspiration1 from "@/assets/inspiration/inspiration-1.jpg";
 import inspiration2 from "@/assets/inspiration/inspiration-2.jpg";
 import inspiration3 from "@/assets/inspiration/inspiration-3.jpg";
 import inspiration4 from "@/assets/inspiration/inspiration-4.jpg";
-import white from "@/assets/white-kitchen.jpg";
-import woodFinish from "@/assets/wood-finish-kitchen.jpg";
 import project from "@/assets/project-kitchen.jpg";
 import samples from "@/assets/contact-samples.webp";
 import recent1 from "@/assets/recent/recent-project-1.png";
@@ -41,14 +38,12 @@ export const Route = createFileRoute("/")({
 });
 
 const FEATURED = [
-  [oliveSuperMatt, "Olive Super Matt", "olive-super-matt"],
+  ["https://api.builder.io/api/v1/image/assets/TEMP/911c2cd07a14d7bac9abc170db816956d4d94192?width=728", "Musket Brown", "musket-brown"],
+  ["https://api.builder.io/api/v1/image/assets/TEMP/109122586a9a27e7127183512f4214bf1e8c8d5a?width=740", "Sand Dune", "sand-dune"],
+  ["https://api.builder.io/api/v1/image/assets/TEMP/b13a8210851a49c92311d8160ed25a5db70e3a56?width=738", "Washed Maple Wood Natural", "washed-maple-wood-natural"],
   [IMG.woodKitchen, "Rural Oak", "rural-oak"],
   [ravenBlackMatt, "Raven Black Matt", "raven-black-matt"],
-  [white, "Shiny White Gloss", "shiny-white-gloss"],
-  [woodFinish, "Classic Walnut", "classic-walnut"],
-  [IMG.barKitchen, "Sand Dune", "sand-dune"],
-  [project, "Washed Oakwood", "washed-oakwood"],
-  [IMG.brightKitchen, "Alabaster Gloss", "alabaster-gloss"],
+  ["https://api.builder.io/api/v1/image/assets/TEMP/a17ebcd6d189bed4ee6c7cccb66698eee962799f?width=728", "Olive Super Matt", "olive-super-matt"],
 ] as const;
 
 const COLLECTIONS = [

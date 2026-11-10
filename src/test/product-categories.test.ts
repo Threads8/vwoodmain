@@ -33,9 +33,12 @@ describe("Product categories", () => {
     expect(getCategoryProducts("edge-tape").every((tape) => findProduct(tape.slug)?.name === tape.name)).toBe(true);
   });
 
-  it("gives the supplied edge tapes their own pages and leaves the board pages unchanged", () => {
+  it("gives every edge tape its own page and leaves the board pages unchanged", () => {
     const tapes = getCategoryProducts("edge-tape").filter((tape) => findProduct(tape.slug)?.categoryId === "edge-tape");
-    expect(tapes.map((tape) => tape.name)).toEqual(["Arctic Matt", "Alabaster Gloss", "Shiny White Gloss", "Warm White Gloss", "Diamond Grey Gloss", "Raven Black Matt", "Snow White Matt", "Olive Super Matt"]);
+    expect(tapes).toHaveLength(getCategoryProducts("edge-tape").length);
+    expect(tapes.every((tape) => tape.slug.endsWith("-edge-tape"))).toBe(true);
+    // The page image comes from the category card, so tape records carry no separate main image.
+    expect(tapes.every((tape) => "image" in tape && tape.image && !PRODUCT_DETAILS[tape.slug]?.hero)).toBe(true);
     expect(tapes.every((tape) => PRODUCT_DETAILS[tape.slug]?.sizes.join() === "1x22 MM")).toBe(true);
     expect(findProduct("arctic-matt-edge-tape")?.code).toBe("VW63035M");
     expect(findProduct("arctic-matt")?.categoryId).toBe("mdf-board");
@@ -44,7 +47,7 @@ describe("Product categories", () => {
   });
 
   it("lists the rubbish bin range as available", () => {
-    expect(BIN_PRODUCTS.map((product) => product.name)).toEqual(["Rubbish Bin", "Rubbish Bin", "Rubbish Bin", "Rubbish Bin", "Rubbish Bin", "Drawer Runner"]);
+    expect(BIN_PRODUCTS.map((product) => product.name)).toEqual(["Rubbish Bin", "Rubbish Bin", "Rubbish Bin", "Rubbish Bin", "Rubbish Bin"]);
     expect(new Set(BIN_PRODUCTS.map((product) => product.slug)).size).toBe(BIN_PRODUCTS.length);
     expect(categoryOptionLabel(PRODUCT_CATEGORIES.find((item) => item.id === "rubbish-bin")!)).toBe("Rubbish Bin");
   });
@@ -57,17 +60,17 @@ describe("Product categories", () => {
 
   it("links every bin card to a detail page keyed by its code", () => {
     const linked = BIN_PRODUCTS.map((bin) => bin.detailSlug);
-    expect(linked).toEqual(["wb-0240-c", "wb-0240-e", "wb-0144", "wb-0143", "wb-0240-a", "sl6118"]);
+    expect(linked).toEqual(["wb-0240-c", "wb-0240-e", "wb-0144", "wb-0143", "wb-0240-a"]);
     expect(linked.every((slug) => slug && findProduct(slug)?.slug === slug)).toBe(true);
-    expect(["wb-0240-c", "wb-0240-a", "wb-0144", "sl6118"].map((slug) => findProduct(slug)?.code)).toEqual(["WB.0240.C", "WB.0240.A", "WB.0144", "SL6118"]);
-    expect(findProduct("sl6118")?.name).toBe("Drawer Runner");
+    expect(["wb-0240-c", "wb-0240-a", "wb-0144"].map((slug) => findProduct(slug)?.code)).toEqual(["WB.0240.C", "WB.0240.A", "WB.0144"]);
+    expect(findProduct("sl6118")).toBeUndefined();
     expect(findProduct("rubbish-bin-2")).toBeUndefined();
   });
 
   it("keeps earlier bin URLs and other casings resolving to the canonical slug", () => {
     expect(findProduct("pull-out-rubbish-bin")?.slug).toBe("wb-0240-c");
     expect(findProduct("rubbish-bin-wb-0240-a")?.slug).toBe("wb-0240-a");
-    expect(findProduct("drawer-runner")?.slug).toBe("sl6118");
+    expect(findProduct("drawer-runner")).toBeUndefined();
     expect(findProduct(" WB-0144 ")?.slug).toBe("wb-0144");
   });
 
@@ -99,13 +102,14 @@ describe("Product categories", () => {
 });
 
 describe("Listing card descriptions", () => {
-  it("hides them for Sink only, matching the slug in any case or spacing", async () => {
+  it("hides them for Sink and Edge Tape, matching the slug in any case or spacing", async () => {
     const { HIDE_DESCRIPTION_CATEGORIES, showsCardDescription } = await import("@/lib/product-categories");
     const { EDGE_TAPE_CATALOG } = await import("@/lib/catalog-products");
-    expect(HIDE_DESCRIPTION_CATEGORIES).toEqual(["sink"]);
+    expect(HIDE_DESCRIPTION_CATEGORIES).toEqual(["sink", "edge-tape"]);
     expect([" Sink ", "SINK", "sink"].map(showsCardDescription)).toEqual([false, false, false]);
-    expect(["mdf-board", "rubbish-bin", "edge-tape", " Edge Tape "].map(showsCardDescription)).toEqual([true, true, true, true]);
-    expect(EDGE_TAPE_CATALOG.every((product) => showsCardDescription(product.categoryId))).toBe(true);
+    expect(["mdf-board", "rubbish-bin"].map(showsCardDescription)).toEqual([true, true]);
+    expect(["edge-tape", " Edge Tape ", "EDGE_TAPE"].map(showsCardDescription)).toEqual([false, false, false]);
+    expect(EDGE_TAPE_CATALOG.some((product) => showsCardDescription(product.categoryId))).toBe(false);
     // The description data is kept for other pages.
     expect(EDGE_TAPE_CATALOG.filter((product) => product.description).length).toBeGreaterThan(0);
   });

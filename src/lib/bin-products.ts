@@ -33,7 +33,7 @@ export const BIN_PRODUCTS: BinProduct[] = [
     slug: "rubbish-bin-2",
     name: "Rubbish Bin",
     desc: "High-durability seamless polymer surface with anti-fingerprint technology in matte charcoal.",
-    image: "https://api.builder.io/api/v1/image/assets/TEMP/a8d32a4059c6044a1da1b6885a41fa23579f410b?width=526",
+    image: "https://api.builder.io/api/v1/image/assets/TEMP/c7502135c96a6738ead73457696ceadd56acb45b?width=1098",
     detailSlug: productSlug("WB.0240.E"),
   },
   {
@@ -47,22 +47,15 @@ export const BIN_PRODUCTS: BinProduct[] = [
     slug: "rubbish-bin-4",
     name: "Rubbish Bin",
     desc: "Premium natural timber veneer with a deep horizontal grain and organic tactile warmth.",
-    image: "https://api.builder.io/api/v1/image/assets/TEMP/ae1e35e20dd4ca404b6d1e3da381891717cff501?width=526",
+    image: "https://api.builder.io/api/v1/image/assets/TEMP/28dc7ee5145c8995a626ca677ef79bf9901b5411?width=1082",
     detailSlug: productSlug("WB.0143"),
   },
   {
     slug: "rubbish-bin-5",
     name: "Rubbish Bin",
     desc: "High-durability seamless polymer surface with anti-fingerprint technology in matte charcoal.",
-    image: "https://api.builder.io/api/v1/image/assets/TEMP/ae1e35e20dd4ca404b6d1e3da381891717cff501?width=526",
+    image: "https://api.builder.io/api/v1/image/assets/TEMP/6dbc4b3ff29cb268bf544714f079133f8b7528ab?width=1110",
     detailSlug: productSlug("WB.0240.A"),
-  },
-  {
-    slug: "drawer-runner",
-    name: "Drawer Runner",
-    desc: "Acrylic-based surface offering an ultra-matte, velvety touch with thermal healing properties.",
-    image: "https://api.builder.io/api/v1/image/assets/TEMP/ab43f443ac7ce99578675e10f8245cdd841d2838?width=1092",
-    detailSlug: productSlug("SL6118"),
   },
 ];
 
@@ -96,18 +89,12 @@ const detailRecords: (Pick<BinDetailProduct, "name" | "desc"> & { code: string }
     name: "Rubbish Bin",
     desc: "Rubbish bin, code WB.0143, W340×D480×H425mm.",
   },
-  {
-    code: "SL6118",
-    name: "Drawer Runner",
-    desc: "Drawer runner, code SL6118. H118mm x L350mm x T1.2mm, one pair per bag with 12 screws each.",
-  },
 ];
 
 /** Earlier detail URLs, kept working: the product page redirects them to the code-based slug. */
 export const LEGACY_BIN_SLUGS: Readonly<Record<string, string>> = {
   "pull-out-rubbish-bin": productSlug("WB.0240.C"),
   "rubbish-bin-wb-0240-a": productSlug("WB.0240.A"),
-  "drawer-runner": productSlug("SL6118"),
 };
 
 export const BIN_DETAIL_PRODUCTS: BinDetailProduct[] = detailRecords.map(({ code, ...record }) => {

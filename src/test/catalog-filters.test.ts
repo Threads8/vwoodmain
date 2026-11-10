@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CATALOG_ATTRIBUTES } from "@/lib/catalog-attributes";
+import { CARD_TAGLINES, CATALOG_ATTRIBUTES } from "@/lib/catalog-attributes";
 import {
   availableOptions,
   EMPTY_PRODUCT_FILTERS,
@@ -14,6 +14,7 @@ import {
 } from "@/lib/catalog-filters";
 import { BOARD_CATALOG, EDGE_TAPE_CATALOG } from "@/lib/catalog-products";
 import { BOARDS } from "@/lib/site-data";
+import { findProduct } from "@/lib/product-categories";
 import { normalizeFinish } from "@/config/catalogFilters";
 
 type Item = Filterable & { id: string };
@@ -178,9 +179,9 @@ describe("catalog data", () => {
     expect(Object.keys(CATALOG_ATTRIBUTES).sort()).toEqual(
       BOARDS.map((board) => board.slug).sort(),
     );
-    // Classic Walnut is kept for other features but is not one of the 25 MDF board products.
     expect(BOARD_CATALOG).toHaveLength(25);
-    expect(BOARD_CATALOG.some((product) => product.slug === "classic-walnut")).toBe(false);
+    expect(BOARD_CATALOG.some((product) => product.slug === "classic-walnut")).toBe(true);
+    expect(BOARD_CATALOG.some((product) => product.slug === "ultra-high-gloss-iron-ore")).toBe(false);
     expect(EDGE_TAPE_CATALOG).toHaveLength(27);
     expect(EDGE_TAPE_CATALOG.some((product) => product.name === "Classic Walnut")).toBe(true);
     for (const product of [...BOARD_CATALOG, ...EDGE_TAPE_CATALOG]) {
@@ -189,37 +190,15 @@ describe("catalog data", () => {
     }
   });
 
-  it("shows the supplied Figma copy on the first 20 MDF board cards, in grid order", () => {
-    const opening = (product: (typeof BOARD_CATALOG)[number]) => product.description.split(" ")[0];
-    expect(BOARD_CATALOG.slice(0, 20).map(opening)).toEqual([
-      ...[
-        "Premium",
-        "High-durability",
-        "Acrylic-based",
-        "Ultra-compact",
-        "Anodized",
-        "Acrylic-based",
-      ],
-      ...[
-        "Premium",
-        "Acrylic-based",
-        "Ultra-compact",
-        "Anodized",
-        "Acrylic-based",
-      ],
-      ...[
-        "Premium",
-        "High-durability",
-        "Acrylic-based",
-        "Ultra-compact",
-        "Anodized",
-        "Acrylic-based",
-      ],
-      ...["Ultra-compact", "Anodized", "Melamine-based"],
+  it("shows each MDF board's short tagline on its card", () => {
+    const tagline = (slug: string) => BOARD_CATALOG.find((product) => product.slug === slug)?.description;
+    expect(BOARD_CATALOG.every((product) => product.description === CARD_TAGLINES[product.slug])).toBe(true);
+    expect(["arctic-matt", "classic-walnut", "prime-oak", "anthracite"].map(tagline)).toEqual([
+      "Crisp, Clean, Versatile",
+      "Rich Heritage Grain",
+      "Premium Oak, Everyday Durability",
+      "Sleek, Sophisticated Neutral",
     ]);
-    expect(BOARD_CATALOG[2]?.description).toBe(
-      "Acrylic-based surface offering an ultra-matte, velvety touch with thermal healing properties.",
-    );
     // The card copy stays catalog-only; detail pages and the kitchen configurator keep theirs.
     expect(BOARDS[0]?.desc).not.toBe(BOARD_CATALOG[0]?.description);
   });
@@ -238,7 +217,10 @@ describe("catalog data", () => {
   });
 
   it("gives edge tapes the attributes of their matching board", () => {
-    for (const tape of EDGE_TAPE_CATALOG.filter((product) => product.hasDetailPage)) {
+    // White Satin and White Gloss are carcass tapes with no matching board.
+    const boardTapes = EDGE_TAPE_CATALOG.filter((product) => product.hasDetailPage && BOARDS.some((item) => item.name === product.name));
+    expect(boardTapes).toHaveLength(25);
+    for (const tape of boardTapes) {
       const board = BOARDS.find((item) => item.name === tape.name)!;
       const attributes = CATALOG_ATTRIBUTES[board.slug]!;
       expect([tape.material, tape.finish, tape.colors]).toEqual([
@@ -247,21 +229,6 @@ describe("catalog data", () => {
         attributes.colors,
       ]);
     }
-  });
-
-  it("flags exactly the boards whose card description is shared with another board", () => {
-    const uses = new Map<string, number>();
-    for (const product of BOARD_CATALOG)
-      uses.set(product.description, (uses.get(product.description) ?? 0) + 1);
-    for (const product of BOARD_CATALOG) {
-      expect({ slug: product.slug, flagged: product.needsUniqueCopy }).toEqual({
-        slug: product.slug,
-        flagged: uses.get(product.description)! > 1,
-      });
-    }
-    const flagged = (slug: string) =>
-      BOARD_CATALOG.find((product) => product.slug === slug)?.needsUniqueCopy;
-    expect([flagged("alabaster-gloss"), flagged("shiny-white-gloss")]).toEqual([true, true]);
   });
 });
 
@@ -276,13 +243,16 @@ describe("edge tape satin finish", () => {
     expect(parseCatalogSearch({ finish: " SATIN ,bogus" }).finishes).toEqual(["satin"]);
   });
 
-  it("adds the sheet's White Satin and White Gloss tapes without inventing a code, image or material", () => {
+  it("adds the sheet's White Satin and White Gloss tapes with their Figma card image and no invented code or material", () => {
     const tape = (name: string) => EDGE_TAPE_CATALOG.find((product) => product.name === name)!;
-    expect([tape("White Satin"), tape("White Gloss")].map(({ categoryId, finish, size, colors, code, image, material }) =>
-      ({ categoryId, finish, size, colors, code, image, material }))).toEqual([
-      { categoryId: "edge-tape", finish: "satin", size: "1x21 MM", colors: ["white"], code: undefined, image: undefined, material: undefined },
-      { categoryId: "edge-tape", finish: "high-gloss", size: "1x22 MM", colors: ["white"], code: undefined, image: undefined, material: undefined },
+    expect(["white-satin-carcass-edge-tape", "white-gloss-carcass-edge-tape"].map((slug) => findProduct(slug)?.name)).toEqual(["White Satin", "White Gloss"]);
+    expect([tape("White Satin"), tape("White Gloss")].every((product) => product.hasDetailPage)).toBe(true);
+    expect([tape("White Satin"), tape("White Gloss")].map(({ categoryId, finish, size, colors, code, material }) =>
+      ({ categoryId, finish, size, colors, code, material }))).toEqual([
+      { categoryId: "edge-tape", finish: "satin", size: "1x21 MM", colors: ["white"], code: undefined, material: undefined },
+      { categoryId: "edge-tape", finish: "high-gloss", size: "1x22 MM", colors: ["white"], code: undefined, material: undefined },
     ]);
+    expect([tape("White Satin"), tape("White Gloss")].every((product) => product.image?.startsWith("https://api.builder.io/"))).toBe(true);
   });
 
   it("filters Edge Tape by Satin, High Gloss and both (OR within Finish)", () => {

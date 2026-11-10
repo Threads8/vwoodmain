@@ -36,134 +36,138 @@ const raw: RawTape[] = [
   {
     name: "Arctic Matt",
     desc: TIMBER,
-    image: asset("31bc97eab9eb72afa9d9a2dce409048e20259bd5", 555),
+    image: asset("d387e25d89f657129ce144284aec377eac3fee30", 554),
   },
-  { name: "Alabaster Gloss", desc: POLYMER, swatch: "#F4EFED" },
+  {
+    name: "Alabaster Gloss",
+    desc: POLYMER,
+    swatch: "#F4EFED",
+    image: asset("e878305f7fac5862253b3abd00bb9e980c91034c", 554),
+  },
   {
     name: "Shiny White Gloss",
     desc: ACRYLIC,
-    image: asset("90930ebe4be79da278a309ced2681416c0a45007", 558),
+    image: asset("3599e3c0be0f6406c2938483af444ef58d32ed82", 558),
   },
   {
     name: "Warm White Gloss",
     desc: STONE,
-    image: asset("450a47a70576348117425781d7a198e46ae92c1d", 555),
+    image: asset("f5056c65abd917c67921f05e1f710040c01139ba", 554),
   },
   {
     name: "Diamond Grey Gloss",
     desc: BRUSHED,
-    image: asset("ad6595ac60f482dfe2ca1f5c560854d2c4ad4423", 1432),
-    crop: { width: 716, height: 701, x: -408, y: -56 },
+    image: asset("212c7a6f4a93256682c513e0de55b3ae0ffea894", 732),
   },
-  { name: "Raven Black Matt", desc: ACRYLIC, swatch: "#2B2A28" },
+  {
+    name: "Raven Black Matt",
+    desc: ACRYLIC,
+    swatch: "#2B2A28",
+    image: asset("af26825d7e11f5dbf7e88684a560db78e3a620e7", 556),
+  },
   {
     name: "Snow White Matt",
     desc: TIMBER,
     swatch: "#FCFBF7",
+    image: asset("1b7ad379a8405cd49d49911f900f38637eb5e817", 556),
   },
   {
     name: "Classic Walnut",
     desc: POLYMER,
-    image: asset("45407cc05cc88cc5c91f99fcfcaa7a5de937443f", 555),
+    image: asset("da52aeccb82baad4f72c096955442152cc3f0556", 555),
   },
   {
     name: "Maple Wood Natural",
     desc: ACRYLIC,
-    image: asset("09ec5240c23f65740f4c48a417a726b2dd0bdba1", 555),
+    image: asset("71aca2ffad74296c8700ec097532b14f362cfe3f", 558),
   },
   {
     name: "Natural Brown",
     desc: STONE,
-    image: asset("e4348f4de9e73977c5ff18425f91a2f2797f2605", 556),
-    crop: { width: 278, height: 371, x: 0, y: 0 },
+    image: asset("6f0769fa6b94d74c7a8016ca3c306ba8405ab267", 556),
   },
   {
     name: "Oak Wood Natural",
     desc: BRUSHED,
-    image: asset("88be51389f791d8068318ef5213c84a669fe29a9", 555),
+    image: asset("f33f8c5c427a811f3d665e6ee2564e94ed9989c5", 556),
   },
   {
     name: "Grey Wood Natural",
     desc: ACRYLIC,
-    image: asset("3f0ddff073c7767fef44f9ac329d19e43f8c5ec1", 555),
+    image: asset("1be37e1e0209ca3f59e0ddf9cb0afc86d4eb9657", 554),
   },
   {
     name: "Southern Oakwood",
     desc: TIMBER,
-    image: asset("6f2bee6ebe5f734a8c62ad53d9986274864ca945", 555),
+    image: asset("3c1acf9599b1863389be31d5991084694cfcbbca", 554),
   },
   {
     name: "Washed Maple Wood Natural",
     desc: POLYMER,
-    image: asset("3c99d6344301efe1f7c6f680580e309f6f32b4bb", 555),
+    image: asset("47a45fab4888da3287ce63cf9fd5a3789a9ae607", 1084),
   },
   {
     name: "Washed Oakwood",
     desc: ACRYLIC,
-    image: asset("1ef07a39eff8aafbe3575162a5e9dc6b863eff16", 555),
+    image: asset("32db1c2d8672eb618195e545a25b0a93140c936d", 554),
   },
   {
     name: "Olive Super Matt",
     desc: STONE,
-    image: asset("c33d5bc040013fb7938ecfd28c58a1d85afd6217", 555),
+    image: asset("90804f163bb649fefd0be98806fb0e8a291d1ba1", 554),
   },
   {
     name: "Maple Shadow",
     desc: BRUSHED,
-    image: asset("c8f7b848188a33c8f9e64fc65ca51991b2955f73", 680),
-    crop: { width: 340, height: 355, x: -12, y: 0 },
+    image: asset("947b3095ca22e904bb4196ffd274a4742786a730", 736),
   },
   {
     name: "Golden Oak",
     desc: ACRYLIC,
-    image: asset("0e931d231e21df1d7411edddd2e356e328edc451", 555),
+    image: asset("232a4fc008e26b8b1244e291085611837f531027", 750),
   },
   {
     name: "Musket Brown",
     desc: STONE,
-    image: asset("1b43261c9a368a5bacbbcbcc38bc69f2a87efd6a", 555),
+    image: asset("d6c51e8ee326dd14dfec305725f910e223396460", 734),
   },
   {
     name: "Sand Dune",
     desc: BRUSHED,
-    image: asset("8977d742d4274a432a7593bc3e1fd2659b77d49a", 555),
+    image: asset("c3c3ccba7733b2badd17f7d0942b271304e6004c", 556),
   },
   {
     name: "Prime Oak",
     desc: MELAMINE,
-    image: asset("0ff07d2c1957af976e8d0287401eb786bae20b09", 1359),
-    crop: { width: 679, height: 713, x: -169, y: -270 },
+    image: asset("3b06179a80e6eff8e79e3e120f4bd3bca4007cfe", 554),
   },
   {
     name: "Moss Grey Wood",
     desc: STONE,
-    image: asset("c63fba2607e77e6e83278ad6e621c3c661455341", 1082),
-    crop: { width: 541, height: 517, x: -81, y: -39 },
+    image: asset("28be2c0af58a82415381bc6f57ed6f50921c8955", 554),
   },
   {
     name: "Rural Oak",
     desc: BRUSHED,
-    image: asset("7c71fe96836f6b9c7755f2690e9965e45d9aadc2", 3076),
-    crop: { width: 1538, height: 2735, x: -909, y: -720 },
+    image: asset("23562fd3617b3fd3da764a43f05920abedf7b2f1", 556),
   },
   {
     name: "Aged Ash",
     desc: MELAMINE,
-    image: asset("9173fd7d472ddd36824af7a90ea6ce61e9bf8c31", 1082),
-    crop: { width: 541, height: 517, x: -77, y: -42 },
+    image: asset("c553ee0937b144785f36270faafab2304c1643ea", 554),
   },
   {
     name: "Anthracite",
     desc: STONE,
-    image: asset("19f69dab8e9568f6a9d2a8ce680f7c56408f9476", 1082),
-    crop: { width: 541, height: 517, x: -81, y: -39 },
+    image: asset("a532d1ae405dbf50390940587be9f12a2a7215b8", 554),
   },
 ];
 
 /**
  * Carcass edge tapes from the product sheet that have no matching board. Only the fields the
- * sheet gives are filled: it supplies no code, material, image or copy for these, so those stay
- * empty. They have no detail page yet.
+ * sheet gives are filled, plus the card image from the Figma edge tape category frame: no code,
+ * material or copy is supplied for these, so those stay empty. Their detail pages use the
+ * standard edge tape copy (see PRODUCT_DETAILS).
  */
 export type SheetEdgeTape = {
   categoryId: "edge-tape";
@@ -173,14 +177,36 @@ export type SheetEdgeTape = {
   /** Finish exactly as written on the sheet; normalized to a filter key in the catalog. */
   finish: string;
   colors: ["white"];
+  image: string;
 };
 
 export const CARCASS_EDGE_TAPES: SheetEdgeTape[] = [
-  { categoryId: "edge-tape", slug: "white-satin-carcass-edge-tape", name: "White Satin", size: "1x21 MM", finish: "Satin", colors: ["white"] },
-  { categoryId: "edge-tape", slug: "white-gloss-carcass-edge-tape", name: "White Gloss", size: "1x22 MM", finish: "High Gloss", colors: ["white"] },
+  { categoryId: "edge-tape", slug: "white-satin-carcass-edge-tape", name: "White Satin", size: "1x21 MM", finish: "Satin", colors: ["white"], image: asset("d387e25d89f657129ce144284aec377eac3fee30", 554) },
+  { categoryId: "edge-tape", slug: "white-gloss-carcass-edge-tape", name: "White Gloss", size: "1x22 MM", finish: "High Gloss", colors: ["white"], image: asset("656ccfdb0fabe39c44cf4485935fc76d96b62ef1", 554) },
 ];
 
 const edgeTapeSlug = (boardSlug: string) => `${boardSlug}-edge-tape`;
+
+/**
+ * Every board-matched tape gets its own edge tape page. Tapes without a supplied detail frame get
+ * a record built from their board (same in-use photos, standard tape size, no supplier code),
+ * registered in PRODUCT_DETAILS so the page, quote form and catalog all read one record. Their
+ * main image is the category card image (see the product page).
+ */
+for (const { name } of raw) {
+  const board = BOARDS.find((item) => item.name === name);
+  if (!board || PRODUCT_DETAILS[edgeTapeSlug(board.slug)]) continue;
+  const boardDetail = PRODUCT_DETAILS[board.slug];
+  PRODUCT_DETAILS[edgeTapeSlug(board.slug)] = {
+    code: "",
+    surfaceDesc: board.surfaceDesc,
+    features: board.features,
+    color: boardDetail?.color ?? board.swatch,
+    sizes: ["1x22 MM"],
+    images: boardDetail?.images ?? [],
+    imageWidths: boardDetail?.imageWidths ?? [],
+  };
+}
 
 export type EdgeTapeDetailProduct = {
   categoryId: "edge-tape";
@@ -194,7 +220,23 @@ export type EdgeTapeDetailProduct = {
   features: string[];
 };
 
-export const EDGE_TAPE_DETAIL_PRODUCTS: EdgeTapeDetailProduct[] = BOARDS.flatMap((board) => {
+const CARCASS_DETAIL_PRODUCTS: EdgeTapeDetailProduct[] = CARCASS_EDGE_TAPES.flatMap((tape) => {
+  const detail = PRODUCT_DETAILS[tape.slug];
+  if (!detail) return [];
+  return [{
+    categoryId: "edge-tape" as const,
+    slug: tape.slug,
+    name: tape.name,
+    desc: detail.surfaceDesc,
+    code: detail.code,
+    sides: detail.sides ?? "2 Sides",
+    swatch: detail.color,
+    surfaceDesc: detail.surfaceDesc,
+    features: detail.features,
+  }];
+});
+
+export const EDGE_TAPE_DETAIL_PRODUCTS: EdgeTapeDetailProduct[] = CARCASS_DETAIL_PRODUCTS.concat(BOARDS.flatMap((board) => {
   const slug = edgeTapeSlug(board.slug);
   const detail = PRODUCT_DETAILS[slug];
   if (!detail) return [];
@@ -211,7 +253,7 @@ export const EDGE_TAPE_DETAIL_PRODUCTS: EdgeTapeDetailProduct[] = BOARDS.flatMap
       features: detail.features,
     },
   ];
-});
+}));
 
 export const EDGE_TAPE_PRODUCTS: EdgeTapeProduct[] = raw.flatMap(({ name, swatch, ...tape }) => {
   const board = BOARDS.find((item) => item.name === name);
