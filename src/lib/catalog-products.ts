@@ -57,7 +57,15 @@ function attributesFor(board: Board) {
   return attributes;
 }
 
-export const BOARD_CATALOG: CatalogProduct[] = BOARDS.map((board) => {
+/**
+ * Boards kept for other features (home hero, edge tape, kitchen finishes) but not part of the
+ * supplied 25-product MDF board range, so they are left out of the board catalog grid.
+ */
+const NOT_IN_BOARD_CATALOG = new Set(["classic-walnut"]);
+
+export const BOARD_CATALOG: CatalogProduct[] = BOARDS.filter(
+  (board) => !NOT_IN_BOARD_CATALOG.has(board.slug),
+).map((board) => {
   const { needsUniqueCopy, description, cardSwatch, ...attributes } = attributesFor(board);
   const detail = PRODUCT_DETAILS[board.slug];
   const images = detail?.images ?? [];
@@ -82,12 +90,14 @@ export const BOARD_CATALOG: CatalogProduct[] = BOARDS.map((board) => {
   };
 });
 
-export const EDGE_TAPE_CATALOG: CatalogProduct[] = EDGE_TAPE_PRODUCTS.map((tape): CatalogProduct => {
+export const EDGE_TAPE_CATALOG: CatalogProduct[] = EDGE_TAPE_PRODUCTS.flatMap((tape): CatalogProduct[] => {
   const board = BOARDS.find((item) => item.name === tape.name)!;
+  // Same supplied range as the board grid: Classic Walnut is not one of the 26 edge tapes.
+  if (NOT_IN_BOARD_CATALOG.has(board.slug)) return [];
   const { material, colors, textureCount } = attributesFor(board);
   // Only tapes with a supplied detail frame have a tape code; the board's code is not reused.
   const code = PRODUCT_DETAILS[tape.slug]?.code;
-  return {
+  return [{
     id: tape.slug,
     slug: tape.slug,
     categoryId: "edge-tape",
@@ -104,7 +114,7 @@ export const EDGE_TAPE_CATALOG: CatalogProduct[] = EDGE_TAPE_PRODUCTS.map((tape)
     ...(tape.crop ? { crop: tape.crop } : {}),
     swatch: tape.swatch,
     needsUniqueCopy: false,
-  };
+  }];
 }).concat(
   CARCASS_EDGE_TAPES.map((tape): CatalogProduct => ({
     id: tape.slug,

@@ -63,11 +63,14 @@ export type AvailableOptions = {
   color: Set<ColorKey>;
 };
 
-/** The options that at least one product in this category has; the others are not shown. */
+/**
+ * The options that at least one product in this category has; the others are not shown.
+ * Every finish (including Satin) is always offered; live counts disable any with no matches.
+ */
 export function availableOptions(products: readonly Filterable[]): AvailableOptions {
   return {
     material: new Set(products.flatMap((product) => (product.material ? [product.material] : []))),
-    finish: new Set(products.map((product) => product.finish)),
+    finish: new Set(FINISH_OPTIONS.map(({ key }) => key)),
     color: new Set(products.flatMap((product) => product.colors)),
   };
 }

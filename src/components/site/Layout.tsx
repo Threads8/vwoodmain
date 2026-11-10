@@ -159,7 +159,7 @@ export function SiteFooter() {
               ))}
             </ul>
           </nav>
-          <FooterList title="Products:" items={[["MDF Board", "/products"], ["Sink", "/products", { category: "sink", view: "catalog" }], ["Rubbish Bin", "/products", { category: "rubbish-bin", view: "catalog" }], ["Edge Tape", "/products", { category: "edge-tape", view: "catalog" }]]} />
+          <FooterList title="Products:" items={[["MDF Board", "/products"], ["Sinks", "/products", { category: "sink", view: "catalog" }], ["Rubbish Bin", "/products", { category: "rubbish-bin", view: "catalog" }], ["Edge Tape", "/products", { category: "edge-tape", view: "catalog" }]]} />
           <div className="site-footer-contact">
             <h4 className="site-footer-heading">Contact:</h4>
             <ul>

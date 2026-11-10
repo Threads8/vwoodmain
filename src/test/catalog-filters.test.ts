@@ -150,15 +150,15 @@ describe("category options", () => {
   it("offers only the options a category has products for", () => {
     const options = availableOptions(ITEMS.filter((item) => item.material === "melamine"));
     expect([...options.material]).toEqual(["melamine"]);
-    expect([...options.finish].sort()).toEqual(["high-gloss", "woodgrain"]);
-    expect(options.finish.has("satin")).toBe(false);
+    // Every finish is always offered; counts disable the ones with no matches.
+    expect([...options.finish].sort()).toEqual(["high-gloss", "matte", "satin", "woodgrain"]);
   });
 
   it("drops URL selections the category cannot match", () => {
     const options = availableOptions(ITEMS);
     expect(
       withinOptions({ materials: ["acrylic-super-matt", "acrylic"], finishes: ["satin"], colors: [] }, options),
-    ).toEqual({ materials: ["acrylic"], finishes: [], colors: [] });
+    ).toEqual({ materials: ["acrylic"], finishes: ["satin"], colors: [] });
   });
 
   it("counts MDF and edge tape products only from their own category", () => {
@@ -178,16 +178,20 @@ describe("catalog data", () => {
     expect(Object.keys(CATALOG_ATTRIBUTES).sort()).toEqual(
       BOARDS.map((board) => board.slug).sort(),
     );
-    expect(BOARD_CATALOG).toHaveLength(BOARDS.length);
+    // Classic Walnut is kept for other features but is not one of the 25 MDF board products.
+    expect(BOARD_CATALOG).toHaveLength(25);
+    expect(BOARD_CATALOG.some((product) => product.slug === "classic-walnut")).toBe(false);
+    expect(EDGE_TAPE_CATALOG).toHaveLength(26);
+    expect(EDGE_TAPE_CATALOG.some((product) => product.name === "Classic Walnut")).toBe(false);
     for (const product of [...BOARD_CATALOG, ...EDGE_TAPE_CATALOG]) {
       expect(product.textureCount).toBeGreaterThanOrEqual(1);
       expect(product.finish).toMatch(/^(matte|satin|high-gloss|woodgrain)$/);
     }
   });
 
-  it("shows the supplied Figma copy on the first 21 MDF board cards, in grid order", () => {
+  it("shows the supplied Figma copy on the first 20 MDF board cards, in grid order", () => {
     const opening = (product: (typeof BOARD_CATALOG)[number]) => product.description.split(" ")[0];
-    expect(BOARD_CATALOG.slice(0, 21).map(opening)).toEqual([
+    expect(BOARD_CATALOG.slice(0, 20).map(opening)).toEqual([
       ...[
         "Premium",
         "High-durability",
@@ -198,7 +202,6 @@ describe("catalog data", () => {
       ],
       ...[
         "Premium",
-        "High-durability",
         "Acrylic-based",
         "Ultra-compact",
         "Anodized",
@@ -236,11 +239,12 @@ describe("catalog data", () => {
 
   it("gives edge tapes the attributes of their matching board", () => {
     for (const tape of EDGE_TAPE_CATALOG.filter((product) => product.hasDetailPage)) {
-      const board = BOARD_CATALOG.find((item) => item.name === tape.name)!;
+      const board = BOARDS.find((item) => item.name === tape.name)!;
+      const attributes = CATALOG_ATTRIBUTES[board.slug]!;
       expect([tape.material, tape.finish, tape.colors]).toEqual([
-        board.material,
-        board.finish,
-        board.colors,
+        attributes.material,
+        normalizeFinish(board.finish),
+        attributes.colors,
       ]);
     }
   });
@@ -295,9 +299,12 @@ describe("edge tape satin finish", () => {
     expect(facetCounts(EDGE_TAPE_CATALOG, { ...EMPTY_PRODUCT_FILTERS, colors: ["black"] }).finish.satin).toBe(0);
   });
 
-  it("keeps Satin on Edge Tape only, so MDF Boards drop a carried-over selection", () => {
+  it("offers Satin on both Edge Tape and MDF Boards, with live counts", () => {
     expect(availableOptions(EDGE_TAPE_CATALOG).finish.has("satin")).toBe(true);
-    expect(availableOptions(BOARD_CATALOG).finish.has("satin")).toBe(false);
-    expect(withinOptions(parseCatalogSearch({ finish: "satin" }), availableOptions(BOARD_CATALOG)).finishes).toEqual([]);
+    expect(availableOptions(BOARD_CATALOG).finish.has("satin")).toBe(true);
+    expect(withinOptions(parseCatalogSearch({ finish: "satin" }), availableOptions(BOARD_CATALOG)).finishes).toEqual(["satin"]);
+    expect(facetCounts(BOARD_CATALOG, EMPTY_PRODUCT_FILTERS).finish.satin).toBe(
+      BOARD_CATALOG.filter((product) => product.finish === "satin").length,
+    );
   });
 });
