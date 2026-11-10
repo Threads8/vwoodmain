@@ -1588,3 +1588,72 @@ a.product-range-card:focus-visible { outline: 2px solid #6f4627; outline-offset:
 .site-nav-link { position: relative; }
 .site-nav-link::after { content: ""; position: absolute; left: 0; right: 0; bottom: -4px; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: left; transition: transform 220ms ease; }
 .site-nav-link:hover::after, .site-nav-link.font-semibold::after { transform: scaleX(1); }
+
+/* MDF board "Details" button and its Specification popup (src/components/catalog/SpecDialog.tsx). */
+.catalog-spec-trigger {
+  margin-top: 1rem;
+  display: inline-block;
+  border-bottom: 1px solid #6f4627;
+  padding-bottom: 2px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #6f4627;
+  cursor: pointer;
+}
+.spec-card {
+  width: calc(100% - 2 * var(--page-gutter, 16px));
+  max-width: 560px;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  gap: 0;
+  border: 0;
+  border-radius: calc(var(--radius-panel) * 2.5);
+  background: #d9d9d9;
+  box-shadow: 0 9px 17px 0 rgba(0, 0, 0, 0.25);
+  padding: clamp(28px, 6vw, 56px) clamp(24px, 6vw, 64px);
+  color: rgba(111, 70, 39, 0.9);
+}
+.spec-card-heading {
+  font-family: "Manrope", sans-serif;
+  font-weight: 800;
+  font-size: clamp(2.25rem, 7vw, 3.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: rgba(111, 70, 39, 0.7);
+}
+.spec-card-type {
+  margin-top: 6px;
+  font-family: "Manrope", sans-serif;
+  font-size: var(--text-lead, 1.125rem);
+  color: #3e3e3e;
+}
+.spec-card-rows { margin-top: 18px; display: grid; gap: 12px; }
+.spec-card-rows dt,
+.spec-card-advantages p {
+  font-family: "Manrope", sans-serif;
+  font-weight: 700;
+  font-size: var(--text-h3);
+  line-height: 1.2;
+  color: #6f4627;
+}
+.spec-card-rows dd {
+  font-family: "Manrope", sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(111, 70, 39, 0.85);
+}
+.spec-card-advantages { margin-top: 22px; }
+.spec-card-advantages ul {
+  margin-top: 6px;
+  padding-left: 1.25rem;
+  list-style: disc;
+  font-family: "Manrope", sans-serif;
+  font-size: 13px;
+  line-height: 1.7;
+  color: rgba(111, 70, 39, 0.85);
+}
+.spec-card-icons { margin-top: 26px; display: flex; align-items: flex-start; gap: 4px; }
+.spec-card-icons img { min-width: 0; height: auto; flex-basis: 0; }

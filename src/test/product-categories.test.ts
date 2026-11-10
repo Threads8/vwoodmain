@@ -86,7 +86,7 @@ describe("Product categories", () => {
   it("lists the sink range as available", () => {
     expect(SINK_PRODUCTS.map((product) => product.name)).toEqual(["Single Bowl Sink", "Single Bowl Sink", "One and a Half Bowl Sink"]);
     expect(new Set(SINK_PRODUCTS.map((product) => product.slug)).size).toBe(SINK_PRODUCTS.length);
-    expect(categoryOptionLabel(PRODUCT_CATEGORIES.find((item) => item.id === "sink")!)).toBe("Sink");
+    expect(categoryOptionLabel(PRODUCT_CATEGORIES.find((item) => item.id === "sink")!)).toBe("Sinks");
   });
 
   it.each([undefined, null, "invalid", "MDF Board", ["sink"], { category: "sink" }])("falls back safely for invalid search value %j", (value) => {
@@ -99,13 +99,13 @@ describe("Product categories", () => {
 });
 
 describe("Listing card descriptions", () => {
-  it("hides them for Sink and Edge Tape only, matching the slug in any case or spacing", async () => {
+  it("hides them for Sink only, matching the slug in any case or spacing", async () => {
     const { HIDE_DESCRIPTION_CATEGORIES, showsCardDescription } = await import("@/lib/product-categories");
     const { EDGE_TAPE_CATALOG } = await import("@/lib/catalog-products");
-    expect(HIDE_DESCRIPTION_CATEGORIES).toEqual(["sink", "edge-tape"]);
-    expect(["edge-tape", " Edge Tape ", "EDGE_TAPE", "sink"].map(showsCardDescription)).toEqual([false, false, false, false]);
-    expect(["mdf-board", "rubbish-bin"].map(showsCardDescription)).toEqual([true, true]);
-    expect(EDGE_TAPE_CATALOG.every((product) => !showsCardDescription(product.categoryId))).toBe(true);
+    expect(HIDE_DESCRIPTION_CATEGORIES).toEqual(["sink"]);
+    expect([" Sink ", "SINK", "sink"].map(showsCardDescription)).toEqual([false, false, false]);
+    expect(["mdf-board", "rubbish-bin", "edge-tape", " Edge Tape "].map(showsCardDescription)).toEqual([true, true, true, true]);
+    expect(EDGE_TAPE_CATALOG.every((product) => showsCardDescription(product.categoryId))).toBe(true);
     // The description data is kept for other pages.
     expect(EDGE_TAPE_CATALOG.filter((product) => product.description).length).toBeGreaterThan(0);
   });

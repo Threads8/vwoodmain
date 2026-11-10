@@ -17,7 +17,7 @@ export type ProductCategory = typeof PRODUCT_CATEGORIES[number]["id"];
  * board-finish copy from the Figma export, so it is not rendered on their cards. The data stays:
  * detail pages still read it.
  */
-export const HIDE_DESCRIPTION_CATEGORIES: readonly ProductCategory[] = ["sink", "edge-tape"];
+export const HIDE_DESCRIPTION_CATEGORIES: readonly ProductCategory[] = ["sink"];
 
 /** Compares on the normalized slug, so "Edge Tape", " EDGE-TAPE " and "edge_tape" all match. */
 export const showsCardDescription = (categoryId: string) =>
@@ -51,5 +51,7 @@ export function findProduct(rawSlug: string): Board | SinkProduct | BinDetailPro
 
 export function categoryOptionLabel(category: typeof PRODUCT_CATEGORIES[number]) {
   const count = category.id === "sink" ? SINK_PRODUCTS.length : category.id === "rubbish-bin" ? BIN_PRODUCTS.length : getCategoryProducts(category.id).length;
-  return `${category.name}${count ? "" : " (coming soon)"}`;
+  // The products-type dropdown says "Sinks"; the category name stays "Sink" elsewhere.
+  const label = category.id === "sink" ? "Sinks" : category.name;
+  return `${label}${count ? "" : " (coming soon)"}`;
 }

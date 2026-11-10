@@ -92,8 +92,6 @@ export const BOARD_CATALOG: CatalogProduct[] = BOARDS.filter(
 
 export const EDGE_TAPE_CATALOG: CatalogProduct[] = EDGE_TAPE_PRODUCTS.flatMap((tape): CatalogProduct[] => {
   const board = BOARDS.find((item) => item.name === tape.name)!;
-  // Same supplied range as the board grid: Classic Walnut is not one of the 26 edge tapes.
-  if (NOT_IN_BOARD_CATALOG.has(board.slug)) return [];
   const { material, colors, textureCount } = attributesFor(board);
   // Only tapes with a supplied detail frame have a tape code; the board's code is not reused.
   const code = PRODUCT_DETAILS[tape.slug]?.code;

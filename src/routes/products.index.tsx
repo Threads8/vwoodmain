@@ -3,6 +3,8 @@ import { useMemo, useState, type CSSProperties, type ImgHTMLAttributes } from "r
 import { X } from "lucide-react";
 import { Page } from "@/components/site/Layout";
 import { FilterPanel } from "@/components/catalog/FilterPanel";
+import { SpecDialog } from "@/components/catalog/SpecDialog";
+import { specForMaterial } from "@/lib/board-specs";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { COLOR_OPTIONS, FINISH_OPTIONS, MATERIAL_OPTIONS } from "@/config/catalogFilters";
 import { PRODUCT_CATEGORIES, parseProductCategory, categoryOptionLabel, showsCardDescription } from "@/lib/product-categories";
@@ -205,9 +207,9 @@ function ProductLanding() {
 }
 
 const PER_PAGE = 21;
-// The supplied edge tape frames split the range into 12 cards, then 13.
+// Edge tape shows 12 cards on page 1, then the remaining 15 on page 2 (no third page).
 const EDGE_TAPE_FIRST_PAGE = 12;
-const EDGE_TAPE_PER_PAGE = 13;
+const EDGE_TAPE_PER_PAGE = 15;
 
 /**
  * Lazy image that fades in once it has loaded. A skeleton pulses in its place only while it
@@ -267,6 +269,9 @@ function ProductMedia({ product }: { product: CatalogProduct }) {
 }
 
 function ProductCard({ product }: { product: CatalogProduct }) {
+  // MDF board cards open a Specification popup from Details; the rest of the card still links.
+  const spec = product.categoryId === "mdf-board" ? specForMaterial(product.material) : undefined;
+  const [specOpen, setSpecOpen] = useState(false);
   const showDescription = showsCardDescription(product.categoryId) && Boolean(product.description);
   const body = (
     <>
@@ -296,7 +301,8 @@ function ProductCard({ product }: { product: CatalogProduct }) {
           {product.description}
         </p>
       )}
-      {product.hasDetailPage && (
+      {/* Edge tape cards stay clickable but show no Details label. */}
+      {product.hasDetailPage && product.categoryId !== "edge-tape" && !spec && (
         <span
           className="mt-4 inline-block border-b pb-0.5 font-body text-[13px] font-semibold tracking-[0.5px] uppercase"
           style={{ borderColor: "#6F4627", color: "#6F4627" }}
@@ -308,6 +314,17 @@ function ProductCard({ product }: { product: CatalogProduct }) {
   );
   // Cards without a description get a fixed 24px foot so rows stay even.
   const className = `group block${showDescription ? "" : " catalog-card-compact"}`;
+  if (spec) {
+    return (
+      <div className={className}>
+        <Link to="/products/$slug" params={{ slug: product.slug }} className="block">{body}</Link>
+        <button type="button" className="catalog-spec-trigger" onClick={() => setSpecOpen(true)}>
+          Details
+        </button>
+        <SpecDialog spec={spec} productName={product.name} open={specOpen} onOpenChange={setSpecOpen} />
+      </div>
+    );
+  }
   return product.hasDetailPage ? (
     <Link to="/products/$slug" params={{ slug: product.slug }} className={className}>{body}</Link>
   ) : (

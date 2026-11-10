@@ -181,8 +181,8 @@ describe("catalog data", () => {
     // Classic Walnut is kept for other features but is not one of the 25 MDF board products.
     expect(BOARD_CATALOG).toHaveLength(25);
     expect(BOARD_CATALOG.some((product) => product.slug === "classic-walnut")).toBe(false);
-    expect(EDGE_TAPE_CATALOG).toHaveLength(26);
-    expect(EDGE_TAPE_CATALOG.some((product) => product.name === "Classic Walnut")).toBe(false);
+    expect(EDGE_TAPE_CATALOG).toHaveLength(27);
+    expect(EDGE_TAPE_CATALOG.some((product) => product.name === "Classic Walnut")).toBe(true);
     for (const product of [...BOARD_CATALOG, ...EDGE_TAPE_CATALOG]) {
       expect(product.textureCount).toBeGreaterThanOrEqual(1);
       expect(product.finish).toMatch(/^(matte|satin|high-gloss|woodgrain)$/);
