@@ -34,7 +34,7 @@ export const BIN_PRODUCTS: BinProduct[] = [
     name: "Rubbish Bin",
     desc: "High-durability seamless polymer surface with anti-fingerprint technology in matte charcoal.",
     image: "https://api.builder.io/api/v1/image/assets/TEMP/a8d32a4059c6044a1da1b6885a41fa23579f410b?width=526",
-    detailSlug: productSlug("WB.0240.A"),
+    detailSlug: productSlug("WB.0240.E"),
   },
   {
     slug: "rubbish-bin-3",
@@ -48,14 +48,14 @@ export const BIN_PRODUCTS: BinProduct[] = [
     name: "Rubbish Bin",
     desc: "Premium natural timber veneer with a deep horizontal grain and organic tactile warmth.",
     image: "https://api.builder.io/api/v1/image/assets/TEMP/ae1e35e20dd4ca404b6d1e3da381891717cff501?width=526",
-    detailSlug: productSlug("WB.0240.C"),
+    detailSlug: productSlug("WB.0143"),
   },
   {
     slug: "rubbish-bin-5",
     name: "Rubbish Bin",
     desc: "High-durability seamless polymer surface with anti-fingerprint technology in matte charcoal.",
-    image: "https://api.builder.io/api/v1/image/assets/TEMP/13ef7dcb929d0afdc4e64399f1d950a52cab517f?width=526",
-    detailSlug: productSlug("WB.0144"),
+    image: "https://api.builder.io/api/v1/image/assets/TEMP/ae1e35e20dd4ca404b6d1e3da381891717cff501?width=526",
+    detailSlug: productSlug("WB.0240.A"),
   },
   {
     slug: "drawer-runner",
@@ -82,9 +82,19 @@ const detailRecords: (Pick<BinDetailProduct, "name" | "desc"> & { code: string }
     desc: "Rubbish bin for 300mm cabinets. Code WB.0240.A, W265 x D500 x H500mm.",
   },
   {
+    code: "WB.0240.E",
+    name: "Rubbish Bin",
+    desc: "Rubbish bin, code WB.0240.E, W415×D500×H500mm.",
+  },
+  {
     code: "WB.0144",
     name: "Rubbish Bin",
     desc: "Round rubbish bin, code WB.0144, R255*L310*H330mm.",
+  },
+  {
+    code: "WB.0143",
+    name: "Rubbish Bin",
+    desc: "Rubbish bin, code WB.0143, W340×D480×H425mm.",
   },
   {
     code: "SL6118",

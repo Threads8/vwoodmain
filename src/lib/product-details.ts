@@ -677,12 +677,14 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
     ],
     "color": "#FFF",
     "sizes": [
-      "440X440X205"
+      "W365×D500×H400mm"
     ],
     "images": [],
     "imageWidths": [],
     "showFeatureIcons": false,
-    "hero": "https://api.builder.io/api/v1/image/assets/TEMP/54a80f0e010eba9923805849cad005016e4179bb?width=1082"
+    "hero": "https://api.builder.io/api/v1/image/assets/TEMP/54a80f0e010eba9923805849cad005016e4179bb?width=1082",
+    "colorName": "Grey",
+    "finishName": "Steel+Plastic"
   },
   "wb-0240-a": {
     "code": "WB.0240.A",
@@ -694,14 +696,46 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
     ],
     "color": "#FFF",
     "sizes": [
-      "W(265)XD(500)XH(500mm)"
+      "W265×D500×H500mm"
     ],
     "images": [],
     "imageWidths": [],
     "showFeatureIcons": false,
-    "hero": "https://api.builder.io/api/v1/image/assets/TEMP/65934b9cca13f28f0f8f3cd92cf08b14c9b1688b?width=1098",
+    "hero": "https://api.builder.io/api/v1/image/assets/TEMP/54a80f0e010eba9923805849cad005016e4179bb?width=1082",
     "sizeNote": "For 300mm Cabinet, 18L+6Lr",
-    "hideSizeLabel": true
+    "hideSizeLabel": true,
+    "colorName": "Grey",
+    "finishName": "Steel+Plastic"
+  },
+  // From the bin product sheet; the sheet supplies no product photo.
+  "wb-0240-e": {
+    "code": "WB.0240.E",
+    "surfaceDesc": "",
+    "features": [],
+    "color": "#FFF",
+    "sizes": [
+      "W415×D500×H500mm"
+    ],
+    "images": [],
+    "imageWidths": [],
+    "showFeatureIcons": false,
+    "colorName": "Grey",
+    "finishName": "Steel+Plastic"
+  },
+  // From the bin product sheet; the sheet supplies no product photo.
+  "wb-0143": {
+    "code": "WB.0143",
+    "surfaceDesc": "",
+    "features": [],
+    "color": "#FFF",
+    "sizes": [
+      "W340×D480×H425mm"
+    ],
+    "images": [],
+    "imageWidths": [],
+    "showFeatureIcons": false,
+    "colorName": "Grey",
+    "finishName": "Steel+Plastic"
   },
   // Round bin from the product sheet. Only the sheet's fields are filled; it gives no copy or features.
   "wb-0144": {

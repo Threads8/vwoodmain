@@ -57,7 +57,7 @@ describe("Product categories", () => {
 
   it("links every bin card to a detail page keyed by its code", () => {
     const linked = BIN_PRODUCTS.map((bin) => bin.detailSlug);
-    expect(linked).toEqual(["wb-0240-c", "wb-0240-a", "wb-0144", "wb-0240-c", "wb-0144", "sl6118"]);
+    expect(linked).toEqual(["wb-0240-c", "wb-0240-e", "wb-0144", "wb-0143", "wb-0240-a", "sl6118"]);
     expect(linked.every((slug) => slug && findProduct(slug)?.slug === slug)).toBe(true);
     expect(["wb-0240-c", "wb-0240-a", "wb-0144", "sl6118"].map((slug) => findProduct(slug)?.code)).toEqual(["WB.0240.C", "WB.0240.A", "WB.0144", "SL6118"]);
     expect(findProduct("sl6118")?.name).toBe("Drawer Runner");
