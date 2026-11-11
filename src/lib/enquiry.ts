@@ -34,9 +34,21 @@ const deliverEnquiry = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     const replyTo = data.fields["Email"] ?? data.fields["email"];
+    // FormSubmit rejects requests that don't name the page they came from ("open this page through
+    // a web server"), and a server-side fetch sends no Referer of its own, so pass the form's page on.
+    let origin: string | undefined;
+    try {
+      origin = data.page ? new URL(data.page).origin : undefined;
+    } catch {
+      origin = undefined;
+    }
     const response = await fetch(ENDPOINT, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        ...(origin ? { Referer: data.page, Origin: origin } : {}),
+      },
       body: JSON.stringify({
         ...data.fields,
         _subject: data.subject,
