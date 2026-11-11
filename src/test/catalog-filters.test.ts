@@ -243,14 +243,14 @@ describe("edge tape satin finish", () => {
     expect(parseCatalogSearch({ finish: " SATIN ,bogus" }).finishes).toEqual(["satin"]);
   });
 
-  it("adds the sheet's White Satin and White Gloss tapes with their Figma card image and no invented code or material", () => {
+  it("adds the sheet's White Satin and White Gloss tapes with their Figma card image, sheet code and no invented material", () => {
     const tape = (name: string) => EDGE_TAPE_CATALOG.find((product) => product.name === name)!;
     expect(["white-satin-carcass-edge-tape", "white-gloss-carcass-edge-tape"].map((slug) => findProduct(slug)?.name)).toEqual(["White Satin", "White Gloss"]);
     expect([tape("White Satin"), tape("White Gloss")].every((product) => product.hasDetailPage)).toBe(true);
     expect([tape("White Satin"), tape("White Gloss")].map(({ categoryId, finish, size, colors, code, material }) =>
       ({ categoryId, finish, size, colors, code, material }))).toEqual([
-      { categoryId: "edge-tape", finish: "satin", size: "1x21 MM", colors: ["white"], code: undefined, material: undefined },
-      { categoryId: "edge-tape", finish: "high-gloss", size: "1x22 MM", colors: ["white"], code: undefined, material: undefined },
+      { categoryId: "edge-tape", finish: "satin", size: "1x21 MM", colors: ["white"], code: "VWX5002SWR", material: undefined },
+      { categoryId: "edge-tape", finish: "high-gloss", size: "1x22 MM", colors: ["white"], code: "VWX4001GWR", material: undefined },
     ]);
     expect([tape("White Satin"), tape("White Gloss")].every((product) => product.image?.startsWith("https://api.builder.io/"))).toBe(true);
   });

@@ -34,17 +34,17 @@ const edgeTape = (detail: Pick<ProductDetail, "code" | "color" | "images" | "ima
 });
 
 export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
-  // Carcass tape with no supplier code; its page frame repeats the Alabaster Gloss tape photos.
+  // Carcass tape; its page frame repeats the Alabaster Gloss tape photos.
   "white-satin-carcass-edge-tape": edgeTape({
-    code: "",
+    code: "VWX5002SWR",
     color: "#FFF",
     sizes: ["1x21 MM"],
     images: [builderAsset("be4aec52573724c28c722c0420967b0b35c36fd5", 414), builderAsset("a3205f850e871e4e3b5df2eb37371b5f03b3466e", 686), builderAsset("71b8a749d6486366d54247ce694cec79587271aa", 414)],
     imageWidths: [207, 343, 207],
   }),
-  // Carcass tape with no supplier code; its page frame repeats the Alabaster Gloss tape photos.
+  // Carcass tape; its page frame repeats the Alabaster Gloss tape photos.
   "white-gloss-carcass-edge-tape": edgeTape({
-    code: "",
+    code: "VWX4001GWR",
     color: "#FFF",
     sizes: ["1x22 MM"],
     images: [builderAsset("be4aec52573724c28c722c0420967b0b35c36fd5", 414), builderAsset("a3205f850e871e4e3b5df2eb37371b5f03b3466e", 686), builderAsset("71b8a749d6486366d54247ce694cec79587271aa", 414)],

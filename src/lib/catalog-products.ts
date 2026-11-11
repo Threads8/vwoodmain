@@ -90,7 +90,7 @@ export const BOARD_CATALOG: CatalogProduct[] = BOARDS.filter(
 const matchingBoardEdgeTapes: CatalogProduct[] = EDGE_TAPE_PRODUCTS.flatMap((tape): CatalogProduct[] => {
   const board = BOARDS.find((item) => item.name === tape.name)!;
   const { material, colors, textureCount } = attributesFor(board);
-  // Only tapes with a supplied detail frame have a tape code; the board's code is not reused.
+  // Each tape carries its own record's code (the same as its board's).
   const code = PRODUCT_DETAILS[tape.slug]?.code;
   return [{
     id: tape.slug,
@@ -117,6 +117,7 @@ export const EDGE_TAPE_CATALOG: CatalogProduct[] = CARCASS_EDGE_TAPES.map((tape)
     slug: tape.slug,
     categoryId: tape.categoryId,
     name: tape.name,
+    ...(PRODUCT_DETAILS[tape.slug]?.code ? { code: PRODUCT_DETAILS[tape.slug]!.code } : {}),
     description: "",
     finish: finishKey(tape.finish),
     size: tape.size,

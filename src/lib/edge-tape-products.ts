@@ -165,8 +165,8 @@ const raw: RawTape[] = [
 
 /**
  * Carcass edge tapes from the product sheet that have no matching board. Only the fields the
- * sheet gives are filled, plus the card image from the Figma edge tape category frame: no code,
- * material or copy is supplied for these, so those stay empty. Their detail pages use the
+ * sheet gives are filled, plus the card image from the Figma edge tape category frame and the
+ * supplier code (in PRODUCT_DETAILS). No material or copy is supplied for these, so those stay empty. Their detail pages use the
  * standard edge tape copy (see PRODUCT_DETAILS).
  */
 export type SheetEdgeTape = {
