@@ -1,3 +1,4 @@
+import mossGreyWood from "@/assets/products/moss-grey-wood.png";
 // Content and assets transcribed from the supplied Figma exports.
 // Repeated surface copy and gallery imagery are retained from those references.
 export type ProductDetail = {
@@ -58,7 +59,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
     imageWidths: [207, 343, 207],
   }),
   "alabaster-gloss-edge-tape": edgeTape({
-    code: "VW63035M",
+    code: "VW63004",
     color: "#F8F8F8",
     images: [builderAsset("be4aec52573724c28c722c0420967b0b35c36fd5", 414), builderAsset("a3205f850e871e4e3b5df2eb37371b5f03b3466e", 686), builderAsset("71b8a749d6486366d54247ce694cec79587271aa", 414)],
     imageWidths: [207, 343, 207],
@@ -125,7 +126,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
     "icons": "https://api.builder.io/api/v1/image/assets/TEMP/e76ada6faa76efad4845dab91d2f2d4f797018a1?width=772"
   },
   "alabaster-gloss": {
-    "code": "VW63035M",
+    "code": "VW63004",
     "surfaceDesc": "A warm, ivory-white gloss that softens any space with a gentle, luminous glow. Its high-shine acrylic surface reflects light beautifully, making compact kitchens and bathrooms feel brighter and more open. A refined alternative to a stark white, well suited to cabinetry, wardrobes and feature panelling.",
     "features": [
       "HIGH-GLOSS ACRYLIC FINISH",
@@ -251,10 +252,14 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
       "2800x1220"
     ],
     "images": [
-      "https://api.builder.io/api/v1/image/assets/TEMP/949571d2d274d0d01985c84e8a54049047d452ce?width=486"
+      "https://api.builder.io/api/v1/image/assets/TEMP/949571d2d274d0d01985c84e8a54049047d452ce?width=486",
+      "https://api.builder.io/api/v1/image/assets/TEMP/c6a1db9f3c9ad31896be5e526c3e798b59d6705c?width=606",
+      "https://api.builder.io/api/v1/image/assets/TEMP/7e2ac78a2abd74ab8d58060e9fc39d5cd2fb7c56?width=490"
     ],
     "imageWidths": [
-      243
+      243,
+      303,
+      245
     ],
     "icons": "https://api.builder.io/api/v1/image/assets/TEMP/abf2b002d3e087e266bf2dd0d15e2006dd78efd3?width=772"
   },
@@ -369,7 +374,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
     "hero": "https://api.builder.io/api/v1/image/assets/TEMP/7d99abf882905bf930d5d486d516c746891e1053?width=1082"
   },
   "southern-oakwood": {
-    "code": "VW8E140-16",
+    "code": "VW8E1640-16",
     "surfaceDesc": "A richly textured oak woodgrain with warm honey and caramel tones, ideal for creating a rustic yet refined feel in kitchens, feature walls and cabinetry. The pronounced grain adds tactile depth to any design.",
     "features": [
       "DEEP RUSTIC WOODGRAIN TEXTURE",
@@ -434,10 +439,10 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
       283
     ],
     "showFeatureIcons": false,
-    "hero": "https://api.builder.io/api/v1/image/assets/TEMP/82ec6da9adb0b001d89c6314b1bdd193008d91b7?width=1082"
+    "hero": mossGreyWood
   },
   "washed-oakwood": {
-    "code": "VW806SM",
+    "code": "VW8E0718-2",
     "surfaceDesc": "A pale, sun-bleached oak woodgrain with a relaxed, driftwood character, perfect for coastal or Hamptons-style kitchens and furniture. Its light tone helps open up smaller spaces.",
     "features": [
       "PALE, DRIFTWOOD-INSPIRED TONE",
@@ -597,7 +602,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
     "hero": "https://api.builder.io/api/v1/image/assets/TEMP/36fe224b2a0be6ccbc1e48d3f34fff0e3fde2e8f?width=1082"
   },
   "prime-oak": {
-    "code": "VW8E516-2",
+    "code": "VW9E47183",
     "surfaceDesc": "A refined, premium-grade oak woodgrain with clean, consistent grain detail, suited to high-end cabinetry, joinery and furniture wanting a polished natural timber look.",
     "features": [
       "PREMIUM, CONSISTENT OAK GRAIN",
@@ -643,7 +648,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
     "hero": "https://api.builder.io/api/v1/image/assets/TEMP/787a57bdebe8f28955ac757ea2dcac3f06126ef5?width=1082"
   },
   "anthracite": {
-    "code": "",
+    "code": "VW936SM",
     "surfaceDesc": "A smooth, soft matte charcoal-grey with a clean, contemporary surface and minimal visible grain — a sleek neutral that pairs beautifully with black hardware and warm timber accents. A versatile choice for kitchen drawers, cabinetry and joinery wanting a modern, understated finish.",
     "features": [
       "SMOOTH, SOLID MATT SURFACE",

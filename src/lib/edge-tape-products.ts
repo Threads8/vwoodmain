@@ -189,7 +189,7 @@ const edgeTapeSlug = (boardSlug: string) => `${boardSlug}-edge-tape`;
 
 /**
  * Every board-matched tape gets its own edge tape page. Tapes without a supplied detail frame get
- * a record built from their board (same in-use photos, standard tape size, no supplier code),
+ * a record built from their board (same in-use photos and supplier code, standard tape size),
  * registered in PRODUCT_DETAILS so the page, quote form and catalog all read one record. Their
  * main image is the category card image (see the product page).
  */
@@ -198,7 +198,8 @@ for (const { name } of raw) {
   if (!board || PRODUCT_DETAILS[edgeTapeSlug(board.slug)]) continue;
   const boardDetail = PRODUCT_DETAILS[board.slug];
   PRODUCT_DETAILS[edgeTapeSlug(board.slug)] = {
-    code: "",
+    // A tape shares its board's supplier code (product sheet lists one code per finish).
+    code: boardDetail?.code ?? board.code,
     surfaceDesc: board.surfaceDesc,
     features: board.features,
     color: boardDetail?.color ?? board.swatch,

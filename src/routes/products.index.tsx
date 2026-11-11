@@ -4,6 +4,9 @@ import { X } from "lucide-react";
 import { Page } from "@/components/site/Layout";
 import { FilterPanel } from "@/components/catalog/FilterPanel";
 import { SpecDialog } from "@/components/catalog/SpecDialog";
+import { ProductSearch } from "@/components/catalog/ProductSearch";
+import { matchesProductSearch } from "@/lib/product-search";
+import { PRODUCT_DETAILS } from "@/lib/product-details";
 import { specForMaterial } from "@/lib/board-specs";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { COLOR_OPTIONS, FINISH_OPTIONS, MATERIAL_OPTIONS } from "@/config/catalogFilters";
@@ -374,19 +377,25 @@ function Products() {
     () => withinOptions(parseCatalogSearch(search), available),
     [search, available],
   );
+  // Search is per visit to a category: Products is keyed by category, so switching resets it.
+  const [query, setQuery] = useState("");
   const filterKey = JSON.stringify(toCatalogSearch(filters));
+  const pageKey = `${filterKey}|${query.trim().toLowerCase()}`;
   const setFilters = (next: ProductFilters) =>
     void navigate({ search: (prev) => ({ ...prev, ...toCatalogSearch(next) }), resetScroll: false });
 
-  const filtered = useMemo(() => filterProducts(products, filters), [products, filters]);
+  const filtered = useMemo(
+    () => filterProducts(products, filters).filter((product) => matchesProductSearch(query, product)),
+    [products, filters, query],
+  );
   const counts = useMemo(() => facetCounts(products, filters), [products, filters]);
   const tags = activeFilterTags(filters);
   const active = hasActiveFilters(filters);
 
-  // Return to the first page whenever the filters change.
-  const [pageState, setPageState] = useState({ key: filterKey, page: 0 });
-  const page = pageState.key === filterKey ? pageState.page : 0;
-  const setPage = (next: number) => setPageState({ key: filterKey, page: next });
+  // Return to the first page whenever the filters or search change.
+  const [pageState, setPageState] = useState({ key: pageKey, page: 0 });
+  const page = pageState.key === pageKey ? pageState.page : 0;
+  const setPage = (next: number) => setPageState({ key: pageKey, page: next });
 
   const pageCount = 1 + Math.ceil(Math.max(0, filtered.length - firstPageSize) / pageSize);
   const pageStart = page === 0 ? 0 : firstPageSize + (page - 1) * pageSize;
@@ -431,13 +440,16 @@ function Products() {
                 </>
               )}
             </p>          </div>
-          <select aria-label="Category" value={category} onChange={(event) => void navigate({ search: { category: parseProductCategory(event.target.value), view: "catalog" }, resetScroll: false })} className="catalog-category mt-3">
-            {PRODUCT_CATEGORIES.map((item) => <option key={item.id} value={item.id}>{categoryOptionLabel(item)}</option>)}
-          </select>
+          <div className="catalog-toolbar">
+            <ProductSearch value={query} onChange={setQuery} label={CATEGORY_TITLES[category]} />
+            <select aria-label="Category" value={category} onChange={(event) => void navigate({ search: { category: parseProductCategory(event.target.value), view: "catalog" }, resetScroll: false })} className="catalog-category">
+              {PRODUCT_CATEGORIES.map((item) => <option key={item.id} value={item.id}>{categoryOptionLabel(item)}</option>)}
+            </select>
+          </div>
         </div>
       </section>
 
-      {category === "sink" ? <SinkRange /> : category === "rubbish-bin" ? <BinRange /> : <section className="product-catalog-layout">
+      {category === "sink" ? <SinkRange query={query} onClear={() => setQuery("")} /> : category === "rubbish-bin" ? <BinRange query={query} onClear={() => setQuery("")} /> : <section className="product-catalog-layout">
         <aside hidden={!hasFilters} className="catalog-filter-sidebar" aria-label="Product filters">
           <FilterPanel filters={filters} counts={counts} available={available} onChange={setFilters} idPrefix="sidebar-filter" />
         </aside>
@@ -482,7 +494,7 @@ function Products() {
             </div>
           )}
 
-          <div key={`${filterKey}:${page}`} className="catalog-grid catalog-grid-fade">
+          <div key={`${pageKey}:${page}`} className="catalog-grid catalog-grid-fade">
             {visible.map((product) => <ProductCard key={product.slug} product={product} />)}
           </div>
           {filtered.length === 0 && (
@@ -490,8 +502,9 @@ function Products() {
               <p role="status" className="py-16 text-center">No products available in this category yet.</p>
             ) : (
               <div className="catalog-empty">
-                <p role="status">No products match your filters</p>
-                <button type="button" onClick={() => setFilters(EMPTY_PRODUCT_FILTERS)}>Clear filters</button>
+                <p role="status">{query.trim() ? <>No products match “{query.trim()}”{active ? " with these filters" : ""}</> : "No products match your filters"}</p>
+                {query.trim() && <button type="button" onClick={() => setQuery("")}>Clear search</button>}
+                {active && <button type="button" onClick={() => setFilters(EMPTY_PRODUCT_FILTERS)}>Clear filters</button>}
               </div>
             )
           )}
@@ -532,10 +545,23 @@ function Products() {
   );
 }
 
-function SinkRange() {
+type RangeProps = { query: string; onClear: () => void };
+
+function RangeEmpty({ query, onClear }: RangeProps) {
   return (
-    <section className="product-range">
-      {SINK_PRODUCTS.map((sink) => (
+    <div className="catalog-empty product-range-empty">
+      <p role="status">No products match “{query.trim()}”</p>
+      <button type="button" onClick={onClear}>Clear search</button>
+    </div>
+  );
+}
+
+function SinkRange({ query, onClear }: RangeProps) {
+  const sinks = SINK_PRODUCTS.filter((sink) => matchesProductSearch(query, sink));
+  return (
+    <section className="product-range" aria-label="Sinks">
+      {sinks.length === 0 && <RangeEmpty query={query} onClear={onClear} />}
+      {sinks.map((sink) => (
         <Link key={sink.slug} to="/products/$slug" params={{ slug: sink.slug }} className="product-range-card">
           <img src={sink.image} alt={sink.name} loading="lazy" />
           <h3 className="text-h3">{sink.name}</h3>
@@ -546,10 +572,15 @@ function SinkRange() {
   );
 }
 
-function BinRange() {
+function BinRange({ query, onClear }: RangeProps) {
+  // Every bin is named "Rubbish Bin", so the supplier code is what tells them apart in a search.
+  const bins = BIN_PRODUCTS.filter((bin) =>
+    matchesProductSearch(query, { name: bin.name, code: bin.detailSlug ? PRODUCT_DETAILS[bin.detailSlug]?.code : undefined }),
+  );
   return (
-    <section className="product-range">
-      {BIN_PRODUCTS.map((bin) => {
+    <section className="product-range" aria-label="Rubbish bins">
+      {bins.length === 0 && <RangeEmpty query={query} onClear={onClear} />}
+      {bins.map((bin) => {
         const content = <>
           <img src={bin.image} alt={bin.name} loading="lazy" />
           <h3 className="text-h3">{bin.name}</h3>

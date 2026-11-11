@@ -1,6 +1,7 @@
 // Images supplied in the product design references.
+import mossGreyWood from "@/assets/products/moss-grey-wood.png";
 export const PRODUCT_IMAGES: Record<string, string> = {
-  "moss-grey-wood": "https://api.builder.io/api/v1/image/assets/TEMP/82ec6da9adb0b001d89c6314b1bdd193008d91b7?width=1082",
+  "moss-grey-wood": mossGreyWood,
   "diamond-grey-gloss":
     "https://api.builder.io/api/v1/image/assets/TEMP/05a3dabad6f8924ec3880b03e423ce4b5b5355bb?width=1432",
   "shiny-white-gloss":

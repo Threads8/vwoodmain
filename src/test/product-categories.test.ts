@@ -86,6 +86,23 @@ describe("Product categories", () => {
       .toEqual(["WB.0144", ["R(255)XL(310)XH(330mm)"], "Black+White+Chrome", "Stainless Steel+Plastic", []]);
   });
 
+  it("gives every MDF board and its edge tape the code from the product sheet", () => {
+    const sheet: Record<string, string> = {
+      "Arctic Matt": "VW63035M", "Alabaster Gloss": "VW63004", "Olive Super Matt": "VW63841M",
+      "Shiny White Gloss": "VW853", "Warm White Gloss": "VW007", "Diamond Grey Gloss": "VW1087",
+      "Raven Black Matt": "VW006SM", "Snow White Matt": "VW806SM", "Classic Walnut": "VW9E1128-3",
+      "Maple Wood Natural": "VW9E1128-2", "Natural Brown": "VW9E1633-8", "Oak Wood Natural": "VW9E1633-7",
+      "Grey Wood Natural": "VW9F0203-1", "Southern Oakwood": "VW8E1640-16", "Washed Maple Wood Natural": "VW8E516-2",
+      "Moss Grey Wood": "VW9F0202-1", "Washed Oakwood": "VW8E0718-2", "Rural Oak": "VW8E0718-11N",
+      "Maple Shadow": "VW9F0206-2", "Golden Oak": "VW9E1532-3", "Musket Brown": "VW8E1027-9",
+      "Sand Dune": "VW9F25177Z-4", "Prime Oak": "VW9E47183", "Aged Ash": "VW9E59291", "Anthracite": "VW936SM",
+    };
+    for (const [name, code] of Object.entries(sheet)) {
+      const board = BOARDS.find((item) => item.name === name)!;
+      expect([name, board.code, findProduct(`${board.slug}-edge-tape`)?.code]).toEqual([name, code, code]);
+    }
+  });
+
   it("lists the sink range as available", () => {
     expect(SINK_PRODUCTS.map((product) => product.name)).toEqual(["Single Bowl Sink", "Single Bowl Sink", "One and a Half Bowl Sink"]);
     expect(new Set(SINK_PRODUCTS.map((product) => product.slug)).size).toBe(SINK_PRODUCTS.length);
@@ -105,9 +122,9 @@ describe("Listing card descriptions", () => {
   it("hides them for Sink and Edge Tape, matching the slug in any case or spacing", async () => {
     const { HIDE_DESCRIPTION_CATEGORIES, showsCardDescription } = await import("@/lib/product-categories");
     const { EDGE_TAPE_CATALOG } = await import("@/lib/catalog-products");
-    expect(HIDE_DESCRIPTION_CATEGORIES).toEqual(["sink", "edge-tape"]);
+    expect(HIDE_DESCRIPTION_CATEGORIES).toEqual(["sink", "edge-tape", "rubbish-bin"]);
     expect([" Sink ", "SINK", "sink"].map(showsCardDescription)).toEqual([false, false, false]);
-    expect(["mdf-board", "rubbish-bin"].map(showsCardDescription)).toEqual([true, true]);
+    expect(["mdf-board", "rubbish-bin"].map(showsCardDescription)).toEqual([true, false]);
     expect(["edge-tape", " Edge Tape ", "EDGE_TAPE"].map(showsCardDescription)).toEqual([false, false, false]);
     expect(EDGE_TAPE_CATALOG.some((product) => showsCardDescription(product.categoryId))).toBe(false);
     // The description data is kept for other pages.
