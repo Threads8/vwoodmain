@@ -736,12 +736,13 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
     ],
     "color": "#FFF",
     "sizes": [
-      "W365×D500×H400mm"
+      "W(365)XD(500)XH(400mm)"
     ],
     "images": [],
     "imageWidths": [],
     "showFeatureIcons": false,
     "hero": "https://api.builder.io/api/v1/image/assets/TEMP/ae1e35e20dd4ca404b6d1e3da381891717cff501?width=526",
+    "sizeNote": "For 400mm Cabinet, 18L+18L",
     "colorName": "Grey",
     "finishName": "Steel+Plastic"
   },
@@ -755,14 +756,13 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
     ],
     "color": "#FFF",
     "sizes": [
-      "W265×D500×H500mm"
+      "W(265)XD(500)XH(500mm)"
     ],
     "images": [],
     "imageWidths": [],
     "showFeatureIcons": false,
     "hero": "https://api.builder.io/api/v1/image/assets/TEMP/6dbc4b3ff29cb268bf544714f079133f8b7528ab?width=1110",
     "sizeNote": "For 300mm Cabinet, 18L+6Lr",
-    "hideSizeLabel": true,
     "colorName": "Grey",
     "finishName": "Steel+Plastic"
   },
@@ -773,12 +773,13 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
     "features": [],
     "color": "#FFF",
     "sizes": [
-      "W415×D500×H500mm"
+      "W(415)XD(500)XH(500mm)"
     ],
     "images": [],
     "imageWidths": [],
     "showFeatureIcons": false,
     "hero": "https://api.builder.io/api/v1/image/assets/TEMP/c7502135c96a6738ead73457696ceadd56acb45b?width=1098",
+    "sizeNote": "For 450mm Cabinet, 30L+30L",
     "colorName": "Grey",
     "finishName": "Steel+Plastic"
   },
@@ -789,12 +790,13 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
     "features": [],
     "color": "#FFF",
     "sizes": [
-      "W340×D480×H425mm"
+      "W(340)XD(480)XH(425mm)"
     ],
     "images": [],
     "imageWidths": [],
     "showFeatureIcons": false,
     "hero": "https://api.builder.io/api/v1/image/assets/TEMP/28dc7ee5145c8995a626ca677ef79bf9901b5411?width=1082",
+    "sizeNote": "For 400mm Cabinet, 20L+20L",
     "colorName": "Grey",
     "finishName": "Steel+Plastic"
   },
@@ -805,7 +807,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
     "features": [],
     "color": "#FFF",
     "sizes": [
-      "R255*L310*H330mm"
+      "R(255)XL(310)XH(330mm)"
     ],
     "images": [],
     "imageWidths": [],

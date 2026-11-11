@@ -83,7 +83,7 @@ describe("Product categories", () => {
   it("gives WB.0144 only the fields from the product sheet, as written", () => {
     const detail = PRODUCT_DETAILS["wb-0144"]!;
     expect([detail.code, detail.sizes, detail.colorName, detail.finishName, detail.features])
-      .toEqual(["WB.0144", ["R255*L310*H330mm"], "Black+White+Chrome", "Stainless Steel+Plastic", []]);
+      .toEqual(["WB.0144", ["R(255)XL(310)XH(330mm)"], "Black+White+Chrome", "Stainless Steel+Plastic", []]);
   });
 
   it("lists the sink range as available", () => {

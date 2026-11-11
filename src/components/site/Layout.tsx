@@ -20,7 +20,7 @@ const NAV = [
   { to: "/", label: "Home" },
   { to: "/products", label: "Products" },
   { to: "/kitchen-design", label: "Kitchen Design" },
-  { to: "/about", label: "About", headerLabel: "About Us" },
+  { to: "/about", label: "About us", headerLabel: "About Us" },
   { to: "/project-gallery", label: "Project Gallery" },
 ] as const;
 
@@ -168,7 +168,7 @@ export function SiteFooter() {
               <li><MailIcon /><a href={`mailto:${ENQUIRY_EMAIL}`}>{ENQUIRY_EMAIL}</a></li>
             </ul>
             <p className="site-footer-timings">
-              <span>Timings:</span> 8:30 am to 5:50 pm
+              <span>Timings:</span> 8:30 am to 5:30 pm
             </p>
           </div>
         </div>

@@ -72,22 +72,22 @@ const detailRecords: (Pick<BinDetailProduct, "name" | "desc"> & { code: string }
   {
     code: "WB.0240.A",
     name: "Rubbish Bin",
-    desc: "Rubbish bin for 300mm cabinets. Code WB.0240.A, W265 x D500 x H500mm.",
+    desc: "Rubbish bin, code WB.0240.A, W(265)XD(500)XH(500mm). For 300mm Cabinet, 18L+6Lr.",
   },
   {
     code: "WB.0240.E",
     name: "Rubbish Bin",
-    desc: "Rubbish bin, code WB.0240.E, W415×D500×H500mm.",
+    desc: "Rubbish bin, code WB.0240.E, W(415)XD(500)XH(500mm). For 450mm Cabinet, 30L+30L.",
   },
   {
     code: "WB.0144",
     name: "Rubbish Bin",
-    desc: "Round rubbish bin, code WB.0144, R255*L310*H330mm.",
+    desc: "Round rubbish bin, code WB.0144, R(255)XL(310)XH(330mm).",
   },
   {
     code: "WB.0143",
     name: "Rubbish Bin",
-    desc: "Rubbish bin, code WB.0143, W340×D480×H425mm.",
+    desc: "Rubbish bin, code WB.0143, W(340)XD(480)XH(425mm). For 400mm Cabinet, 20L+20L.",
   },
 ];
 
