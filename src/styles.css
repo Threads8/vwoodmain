@@ -1073,6 +1073,42 @@ a.product-range-card:focus-visible { outline: 2px solid #6f4627; outline-offset:
 }
 .home-recent-link:hover { color: #6F4627; }
 .home-recent-link:focus-visible { outline: 2px solid #9D8A6F; outline-offset: 4px; border-radius: 2px; }
+
+/* Home testimonials: a minimal horizontal slider (scroll-snap track, swipe or arrow buttons). */
+.home-reviews-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 32px; }
+.home-reviews-nav { display: flex; flex-shrink: 0; gap: 8px; }
+.home-reviews-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border: 1px solid var(--color-border); border-radius: 999px;
+  color: var(--color-review); background: transparent; cursor: pointer;
+  transition: background-color 200ms ease, color 200ms ease, opacity 200ms ease;
+}
+.home-reviews-btn:hover:not(:disabled) { color: #fff; background: #9D8A6F; border-color: #9D8A6F; }
+.home-reviews-btn:focus-visible { outline: 2px solid #9D8A6F; outline-offset: 3px; }
+.home-reviews-btn:disabled { opacity: .35; cursor: default; }
+.home-reviews-track {
+  display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 2 * 24px) / 3); gap: 24px;
+  margin: 0; padding: 0 0 4px; list-style: none;
+  overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none;
+}
+.home-reviews-track::-webkit-scrollbar { display: none; }
+.home-review {
+  display: flex; flex-direction: column; gap: 20px; min-width: 0;
+  padding: clamp(24px, 2.2vw, 32px); border: 1px solid var(--color-border); border-radius: var(--radius-card);
+  scroll-snap-align: start;
+}
+.home-review-quote { flex: 1; margin: 0; color: var(--color-review-muted); }
+.home-review-author { display: flex; align-items: center; gap: 12px; padding-top: 20px; border-top: 1px solid var(--color-border); }
+.home-review-avatar {
+  display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 999px;
+  font-size: 14px; font-weight: 700; letter-spacing: .04em; color: #6F4627; background: #F3EEE6;
+}
+@media (max-width: 1023px) { .home-reviews-track { grid-auto-columns: calc((100% - 24px) / 2); } }
+@media (max-width: 639px) {
+  .home-reviews-head { margin-bottom: 24px; }
+  .home-reviews-track { grid-auto-columns: 86%; gap: 16px; }
+}
 @media (max-width: 767px) {
   .home-recent-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

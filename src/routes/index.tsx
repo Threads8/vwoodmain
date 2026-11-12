@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { ArrowRight, ChevronDown, Star } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { Page } from "@/components/site/Layout";
 import { HeroMaterials } from "@/components/site/HeroMaterials";
 import { formFields, sendEnquiry } from "@/lib/enquiry";
@@ -19,7 +19,6 @@ import recent1 from "@/assets/recent/recent-project-1.png";
 import recent2 from "@/assets/recent/recent-project-2.png";
 import recent3 from "@/assets/recent/recent-project-3.png";
 import recent4 from "@/assets/recent/recent-project-4.png";
-import client1 from "@/assets/reviews/client-1.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -64,10 +63,68 @@ const STEPS = [
 ];
 
 const REVIEWS = [
-  [client1, "Michael Chen", "Interior Designer, NYC", "Vwood transformed our outdated kitchen into a modern masterpiece. The quality of materials and attention to detail exceeded our expectations."],
-  [client1, "Michael Chen", "Interior Designer, NYC", "As a designer, I trust Vwood for all my high-end projects. Their material selection is unmatched and the customer service is exceptional."],
-  [client1, "Emily Rodriguez", "Homeowner, Miami", "The guided design process made choosing materials so easy. Our kitchen is now the heart of our home and we couldn't be happier!"],
-];
+  ["Kitchen Experts", "We love the variety of colours and finishes available at VWood. Their woodgrain range is particularly impressive, and having matching edge tapes makes it much easier to achieve a consistent finish across our projects."],
+  ["Trader Kitchen & Joinery Ltd", "Great range, good prices, and excellent service. We've had a really positive experience dealing with VWood and would definitely recommend them to others in the industry."],
+  ["All About Kitchen & Building Ltd", "Finding a supplier who understands the needs of it's customers makes a big difference. VWood offers a good selection of materials, competitive pricing, and helpful customer support. We're pleased to have them as one of our suppliers."],
+  ["Sleek Kitchens", "What we appreciate most about VWood is their customer service. Whether it's checking stock, arranging deliveries, or finding the right finish, they're always approachable and willing to help. It's been a pleasure working with them."],
+  ["Trufit Kitchen", "VWoods's range of colours and finishes gives us plenty of options for our projects. Their team is easy to deal with, quick to respond to enquiries, and always happy to help with samples and product information."],
+] as const;
+
+/** Initials for a business name, skipping "&" and "Ltd" (e.g. "Trader Kitchen & Joinery Ltd" → "TK"). */
+const initials = (name: string) =>
+  name.split(/\s+/).filter((word) => /^[A-Za-z]/.test(word) && word !== "Ltd").slice(0, 2).map((word) => word[0]).join("");
+
+function Testimonials() {
+  const track = useRef<HTMLUListElement>(null);
+  const [edges, setEdges] = useState({ start: true, end: false });
+  const update = () => {
+    const el = track.current;
+    if (!el) return;
+    setEdges({ start: el.scrollLeft <= 1, end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 1 });
+  };
+  useEffect(() => {
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+  // Moves by one card (card width + gap), so each click lands on the next snap point.
+  const step = (direction: 1 | -1) => {
+    const el = track.current;
+    const card = el?.firstElementChild as HTMLElement | null;
+    if (!el || !card) return;
+    const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollBy({ left: direction * (card.offsetWidth + gap), behavior: reduce ? "auto" : "smooth" });
+  };
+  return (
+    <section className="site-section" aria-labelledby="testimonials-heading">
+      <div className="site-container">
+        <div className="home-reviews-head">
+          <div>
+            <h2 id="testimonials-heading" className="font-heading text-h2 font-bold text-review">What Our Clients Say</h2>
+            <p className="mt-3 font-heading text-lead text-review-muted">Trusted by kitchen and joinery businesses</p>
+          </div>
+          <div className="home-reviews-nav">
+            <button type="button" className="home-reviews-btn" onClick={() => step(-1)} disabled={edges.start} aria-label="Previous testimonial"><ChevronLeft aria-hidden className="h-5 w-5" /></button>
+            <button type="button" className="home-reviews-btn" onClick={() => step(1)} disabled={edges.end} aria-label="Next testimonial"><ChevronRight aria-hidden className="h-5 w-5" /></button>
+          </div>
+        </div>
+        <ul ref={track} className="home-reviews-track font-body" onScroll={update} aria-label="Testimonials">
+          {REVIEWS.map(([name, quote]) => (
+            <li key={name} className="home-review">
+              <div className="flex gap-0.5 text-primary" role="img" aria-label="5 out of 5 stars">{Array.from({ length: 5 }).map((_, k) => <Star key={k} aria-hidden className="h-4 w-4 fill-current" />)}</div>
+              <blockquote className="home-review-quote text-copy">“{quote}”</blockquote>
+              <div className="home-review-author">
+                <span aria-hidden className="home-review-avatar">{initials(name)}</span>
+                <p className="text-base font-semibold leading-6 text-review">{name}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
 
 function FeatureIcon({ d, w }: { d: string; w: number }) {
   return <svg aria-hidden width={w} height={24} viewBox={`0 0 ${w} 24`} fill="none"><path d={d} fill="#7D6A4F" /></svg>;
@@ -329,24 +386,7 @@ function Home() {
       </section>
 
       {/* Testimonials */}
-      <section className="site-section">
-        <div className="mx-auto mb-10 max-w-3xl px-6 text-center">
-          <h2 className="font-heading text-h2 font-bold text-review">What Our Clients Say</h2>
-          <p className="mt-3 font-heading text-lead text-review-muted">Trusted by homeowners and designers alike</p>
-        </div>
-        <div className="site-container grid gap-6 font-body md:grid-cols-3">
-          {REVIEWS.map(([photo, n, r, q], i) => (
-            <div key={i} className="rounded-(--radius-card) border border-border bg-cream p-[clamp(24px,2.2vw,32px)]">
-              <div className="flex items-center gap-3">
-                <img src={photo} alt={n} loading="lazy" className="h-14 w-14 shrink-0 rounded-full object-cover" />
-                <div><p className="text-base font-semibold leading-6 text-review">{n}</p><p className="text-sm leading-5 text-review-muted">{r}</p></div>
-              </div>
-              <div className="mt-4 flex gap-0.5 text-primary">{Array.from({ length: 5 }).map((_, k) => <Star key={k} className="h-4 w-4 fill-current" />)}</div>
-              <p className="mt-4 text-copy italic text-foreground/80">"{q}"</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <Testimonials />
 
       {/* Contact */}
       <ContactBlock />
