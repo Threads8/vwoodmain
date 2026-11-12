@@ -144,7 +144,7 @@ const raw: RawTape[] = [
   {
     name: "Moss Grey Wood",
     desc: STONE,
-    image: asset("28be2c0af58a82415381bc6f57ed6f50921c8955", 554),
+    image: asset("9126913d15e9235038f031ad1c15954bb72e410d", 1082),
   },
   {
     name: "Rural Oak",

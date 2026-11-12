@@ -1,5 +1,5 @@
 // Images supplied in the product design references.
-import mossGreyWood from "@/assets/products/moss-grey-wood.png";
+const mossGreyWood = "https://api.builder.io/api/v1/image/assets/TEMP/65e4ea31ceb53cdeef3cd5f911da658004bbc92a?width=1098";
 export const PRODUCT_IMAGES: Record<string, string> = {
   "moss-grey-wood": mossGreyWood,
   "diamond-grey-gloss":
@@ -7,7 +7,7 @@ export const PRODUCT_IMAGES: Record<string, string> = {
   "shiny-white-gloss":
     "https://api.builder.io/api/v1/image/assets/TEMP/3a2a49bc44201e4c91c2c80ac82995cdc3e0155a?width=558",
   "southern-oakwood":
-    "https://api.builder.io/api/v1/image/assets/TEMP/6f2bee6ebe5f734a8c62ad53d9986274864ca945?width=555",
+    "https://api.builder.io/api/v1/image/assets/TEMP/7d595ff9da3ed8605c241d90a8024408e73fa65e?width=1082",
   "classic-wallnut":
     "https://api.builder.io/api/v1/image/assets/TEMP/45407cc05cc88cc5c91f99fcfcaa7a5de937443f?width=555",
   "washed-maple-wood-natural":

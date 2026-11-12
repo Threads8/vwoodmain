@@ -1,4 +1,4 @@
-import mossGreyWood from "@/assets/products/moss-grey-wood.png";
+const mossGreyWood = "https://api.builder.io/api/v1/image/assets/TEMP/65e4ea31ceb53cdeef3cd5f911da658004bbc92a?width=1098";
 // Content and assets transcribed from the supplied Figma exports.
 // Repeated surface copy and gallery imagery are retained from those references.
 export type ProductDetail = {
@@ -395,7 +395,8 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
       423,
       242
     ],
-    "showFeatureIcons": false
+    "showFeatureIcons": false,
+    "hero": "https://api.builder.io/api/v1/image/assets/TEMP/7d595ff9da3ed8605c241d90a8024408e73fa65e?width=1082"
   },
   "washed-maple-wood-natural": {
     "code": "VW8E516-2",
@@ -822,7 +823,7 @@ export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
     "finishName": "Stainless Steel+Plastic"
   },
   "one-and-a-half-bowl-sink": {
-    "code": "LS-7145HAr",
+    "code": "LS-7145HA",
     "surfaceDesc": "A clean, soft white with a smooth matt finish that suits wardrobes, display cabinetry and joinery alike. Its low-glare surface pairs beautifully with brass and gold hardware for an elegant, contemporary look.",
     "features": [
       "SMOOTH, LOW-GLARE MATT FINISH",

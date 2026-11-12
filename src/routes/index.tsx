@@ -38,7 +38,7 @@ export const Route = createFileRoute("/")({
 });
 
 const FEATURED = [
-  ["https://api.builder.io/api/v1/image/assets/TEMP/911c2cd07a14d7bac9abc170db816956d4d94192?width=728", "Musket Brown", "musket-brown"],
+  ["https://api.builder.io/api/v1/image/assets/TEMP/0534ae14cc9621bd0e00277bbed8f18b73e1bcbf?width=728", "Classic Walnut", "classic-walnut"],
   ["https://api.builder.io/api/v1/image/assets/TEMP/109122586a9a27e7127183512f4214bf1e8c8d5a?width=740", "Sand Dune", "sand-dune"],
   ["https://api.builder.io/api/v1/image/assets/TEMP/b13a8210851a49c92311d8160ed25a5db70e3a56?width=738", "Washed Maple Wood Natural", "washed-maple-wood-natural"],
   [IMG.woodKitchen, "Rural Oak", "rural-oak"],

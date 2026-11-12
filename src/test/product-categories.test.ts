@@ -54,7 +54,7 @@ describe("Product categories", () => {
 
   it("finds board and sink detail records by slug", () => {
     expect(findProduct("arctic-matt")?.categoryId).toBe("mdf-board");
-    expect(SINK_PRODUCTS.map((sink) => findProduct(sink.slug)?.code)).toEqual(["LS-4444", "LS-6045", "LS-7145HAr"]);
+    expect(SINK_PRODUCTS.map((sink) => findProduct(sink.slug)?.code)).toEqual(["LS-4444", "LS-6045", "LS-7145HA"]);
     expect(findProduct("missing")).toBeUndefined();
   });
 
@@ -76,8 +76,8 @@ describe("Product categories", () => {
 
   it("builds URL-safe slugs from codes with dots, spaces, plus signs and stars", async () => {
     const { productSlug } = await import("@/lib/product-slug");
-    expect(["WB.0144", "WB.0240.C", " LS-7145HAr ", "Black+White+Chrome", "R255*L310*H330mm"].map(productSlug))
-      .toEqual(["wb-0144", "wb-0240-c", "ls-7145har", "black-white-chrome", "r255-l310-h330mm"]);
+    expect(["WB.0144", "WB.0240.C", " LS-7145HA ", "Black+White+Chrome", "R255*L310*H330mm"].map(productSlug))
+      .toEqual(["wb-0144", "wb-0240-c", "ls-7145ha", "black-white-chrome", "r255-l310-h330mm"]);
   });
 
   it("gives WB.0144 only the fields from the product sheet, as written", () => {
